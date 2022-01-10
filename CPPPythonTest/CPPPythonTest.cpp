@@ -1,6 +1,8 @@
 // steamVRSideInteractions.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+
+//https://stackoverflow.com/questions/60917800/how-to-get-the-opencv-image-from-python-and-use-it-in-c-in-pybind11
 #include <iostream>
 #include <stdio.h>
 #include <fstream>
@@ -45,13 +47,14 @@ int main(int argc, char *argv[])
 	std::cout << "Starting pybind" << std::endl;
 	py::scoped_interpreter guard{}; // start interpreter, dies when out of scope
 	//py::exec("import test");
-									
+					
+	py::module::import("cv2");
 	py::function min_rosen =
 		py::reinterpret_borrow<py::function>(   // cast from 'object' to 'function - use `borrow` (copy) or `steal` (move)
 			py::module::import("test").attr("functionTest")  // import method "min_rosen" from python "module"
 			);
 			
-	//py::object result = min_rosen();  // automatic conversion from `std::vector` to `numpy.array`, imported in `pybind11/stl.h`
+	py::object result = min_rosen();  // automatic conversion from `std::vector` to `numpy.array`, imported in `pybind11/stl.h`
 	//bool success = result.attr("success").cast<bool>();
 	//int num_iters = result.attr("nit").cast<int>();
 	//double obj_value = result.attr("fun").cast<double>();
