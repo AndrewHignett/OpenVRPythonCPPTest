@@ -1,78 +1,103 @@
-// steamVRSideInteractions.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+/**********************************************************************
+	Name		: Example UDP Server
+	Author		: Sloan Kelly
+	Date		: 2017-12-16
+	Purpose		: Example of a bare bones UDP server
 
+***********************************************************************/
 
-//https://stackoverflow.com/questions/60917800/how-to-get-the-opencv-image-from-python-and-use-it-in-c-in-pybind11
 #include <iostream>
-#include <stdio.h>
-#include <fstream>
-#include <string>
-#include <cstdlib>
+#include <WS2tcpip.h>
+
+// Include the Winsock library (lib) file
+#pragma comment (lib, "ws2_32.lib")
+
+// Saves us from typing std::cout << etc. etc. etc.
 using namespace std;
-#define PY_SSIZE_T_CLEAN
-//#include <Python.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/embed.h>  // python interpreter
-#include <pybind11/stl.h>  // type conversion
-namespace py = pybind11;
 
-int main(int argc, char *argv[])
+// Main entry point into the server
+void main()
 {
-	//should really be set up with a UI
-	//system("pwd");
-	//system("py postEstimationPythonTest.py");
+	////////////////////////////////////////////////////////////
+	// INITIALIZE WINSOCK
+	////////////////////////////////////////////////////////////
 
+	// Structure to store the WinSock version. This is filled in
+	// on the call to WSAStartup()
+	WSADATA data;
 
-	/*
+	// To start WinSock, the required version must be passed to
+	// WSAStartup(). This server is going to use WinSock version
+	// 2 so I create a word that will store 2 and 2 in hex i.e.
+	// 0x0202
+	WORD version = MAKEWORD(2, 2);
+
+	// Start WinSock
+	int wsOk = WSAStartup(version, &data);
+	if (wsOk != 0)
+	{
+		// Not ok! Get out quickly
+		cout << "Can't start Winsock! " << wsOk;
+		return;
+	}
+
+	////////////////////////////////////////////////////////////
+	// SOCKET CREATION AND BINDING
+	////////////////////////////////////////////////////////////
+
+	// Create a socket, notice that it is a user datagram socket (UDP)
+	SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
+
+	// Create a server hint structure for the server
+	sockaddr_in serverHint;
+	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
+	serverHint.sin_family = AF_INET; // Address format is IPv4
+	serverHint.sin_port = htons(8888); // Convert from little to big endian
+
+	// Try and bind the socket to the IP and port
+	if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
+	{
+		cout << "Can't bind socket! " << WSAGetLastError() << endl;
+		return;
+	}
+
+	////////////////////////////////////////////////////////////
+	// MAIN LOOP SETUP AND ENTRY
+	////////////////////////////////////////////////////////////
+
+	sockaddr_in client; // Use to hold the client information (port / ip address)
+	int clientLength = sizeof(client); // The size of the client information
+
+	char buf[1024];
+
+	// Enter a loop
 	while (true)
 	{
-		//check location in specific memory location for whether it's changed
-		//if changed, then update
-		//might be faster and easier to just update all the time?
-		string line;
-		ifstream myfile("C:/tmp/data.txt");
-		if (myfile.is_open())
+		ZeroMemory(&client, clientLength); // Clear the client structure
+		ZeroMemory(buf, 1024); // Clear the receive buffer
+
+		// Wait for message
+		int bytesIn = recvfrom(in, buf, 1024, 0, (sockaddr*)&client, &clientLength);
+		if (bytesIn == SOCKET_ERROR)
 		{
-			while (getline(myfile, line))
-			{
-				//cout << "%p" (void*)line << '\n';
-				printf("%s\n", line);
-			}
-			myfile.close();
+			cout << "Error receiving from client " << WSAGetLastError() << endl;
+			continue;
 		}
 
-		else cout << "Unable to open file";
-	}
-	*/
-	std::cout << "Starting pybind" << std::endl;
-	py::scoped_interpreter guard{}; // start interpreter, dies when out of scope
-	//py::exec("import test");
-					
-	py::module::import("cv2");
-	py::function min_rosen =
-		py::reinterpret_borrow<py::function>(   // cast from 'object' to 'function - use `borrow` (copy) or `steal` (move)
-			py::module::import("test").attr("functionTest")  // import method "min_rosen" from python "module"
-			);
-			
-	py::object result = min_rosen();  // automatic conversion from `std::vector` to `numpy.array`, imported in `pybind11/stl.h`
-	//bool success = result.attr("success").cast<bool>();
-	//int num_iters = result.attr("nit").cast<int>();
-	//double obj_value = result.attr("fun").cast<double>();
+		// Display message and client info
+		char clientIp[256]; // Create enough space to convert the address byte array
+		ZeroMemory(clientIp, 256); // to string of characters
 
-	while (true)
-	{
+		// Convert from byte array to chars
+		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
 
+		// Display the message / who sent it
+		cout << "Message recv from " << clientIp << " : " << buf << endl;
 	}
-	return 0;
+
+	// Close socket
+	closesocket(in);
+
+	// Shutdown winsock
+	WSACleanup();
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

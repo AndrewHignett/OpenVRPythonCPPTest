@@ -5,22 +5,34 @@ VisualStudioVersion = 15.0.28307.1758
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPPPythonTest", "CPPPythonTest.vcxproj", "{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "clientPy", "..\clientPy\clientPy.pyproj", "{89A7229A-2F37-45A2-B33E-A391B4BD709A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Debug|x64.ActiveCfg = Debug|x64
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Debug|x64.Build.0 = Debug|x64
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Debug|x86.ActiveCfg = Debug|Win32
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Debug|x86.Build.0 = Debug|Win32
+		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Release|Any CPU.ActiveCfg = Release|Win32
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Release|x64.ActiveCfg = Release|x64
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Release|x64.Build.0 = Release|x64
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Release|x86.ActiveCfg = Release|Win32
 		{41BF7496-6C1F-4805-B0EF-1B22E3BE6FAF}.Release|x86.Build.0 = Release|Win32
+		{89A7229A-2F37-45A2-B33E-A391B4BD709A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89A7229A-2F37-45A2-B33E-A391B4BD709A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{89A7229A-2F37-45A2-B33E-A391B4BD709A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{89A7229A-2F37-45A2-B33E-A391B4BD709A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89A7229A-2F37-45A2-B33E-A391B4BD709A}.Release|x64.ActiveCfg = Release|Any CPU
+		{89A7229A-2F37-45A2-B33E-A391B4BD709A}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

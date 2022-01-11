@@ -164,6 +164,11 @@
   <ItemGroup>
     <None Include="test.py" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Network.h" />
+    <ClInclude Include="PracticalSocket.h" />
+    <ClInclude Include="udp_server.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
