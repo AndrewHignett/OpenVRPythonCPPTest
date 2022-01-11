@@ -70,7 +70,8 @@ void main()
 
 	//test
 	Connection *con = new Connection();
-	//con->StartConnection();
+	con->StartConnection();
+	
 
 	// Enter a loop
 	while (true)
