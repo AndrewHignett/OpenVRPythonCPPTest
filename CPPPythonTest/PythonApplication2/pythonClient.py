@@ -33,7 +33,6 @@ def calibrate():
     #stick UI in python
     return 0
 
-
 allPoints = []
 print (hex(id(allPoints)))
 
@@ -125,7 +124,10 @@ with mp_pose.Pose(
             #The center point is the midpoint of the 3D tracking - this is the middle of the waist
             mp_drawing.draw_landmarks(
                 image,
-                landmark_subset)
+                #landmark_subset)
+                results.pose_landmarks,
+                mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
 
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             client_socket.settimeout(0.002)
@@ -135,7 +137,7 @@ with mp_pose.Pose(
             client_socket.sendto(str.encode(pointsString), addr)
             end = time.time()
             elapsed = end - start
-            print(f'{elapsed}')
+            #print(f'{elapsed}')
             #probably necessary to wait for a reply before continuing, or could just go the relevant stuff then whatever we pick up next in the socket
             #try:
             #    data, server = client_socket.recvfrom(1024)
