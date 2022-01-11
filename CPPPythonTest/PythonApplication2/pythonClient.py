@@ -11,33 +11,6 @@ from math import ceil
 #Tried Boost, this is bad and does not work
 #https://www.geeksforgeeks.org/how-to-call-c-c-from-python/ might be good
 
-
-# import the module
-from ctypes import cdll
-  
-# load the library
-# it's important that we'd need the dlls for anything included - apparently this doesn't quite work
-# lib1 = cdll.LoadLibrary('./openvr_api.dll')
-# if it says it can't find it, this is usaully because includes were not included when compiling
-#lib = cdll.LoadLibrary('./steamVRConnect.so')
-
-
-#value=lib.CallMemberTest();
-#print(value);
-#lib.TestRun();
-
-#lib.storeInLocation(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #https://stackoverflow.com/questions/4145775/how-do-i-convert-a-python-list-into-a-c-array-by-using-ctypes
-#pass in as c array, convert from a python list
-
-'''
-Approach that would work and is worth testing:
-1. Store initial locations in memory location
-2. Get memory address in python
-3. Save memory address in file
-4. C++ prgram that reads the above and gets data from here - this will need to be of a known size and stored as a ctype
-5. The above memory location is used for tracker positions - this should be done when the value changes, so I guess constantly check if it changes
-'''
-
 import time
 import socket
 
@@ -56,10 +29,9 @@ import socket
     #except socket.timeout:
     #    print('REQUEST TIMED OUT')
 
-def functionTest():
-    return 2
-
-
+def calibrate():
+    #stick UI in python
+    return 0
 
 
 allPoints = []
@@ -114,8 +86,8 @@ with mp_pose.Pose(
                       results.pose_landmarks.landmark[27],#left ankle
                       results.pose_landmarks.landmark[28],#right ankle
                       results.pose_landmarks.landmark[0],#nose
-                      results.pose_landmarks.landmark[31],#left toes (foot direction)
-                      results.pose_landmarks.landmark[32],#right toes (foot direction)
+                      results.pose_landmarks.landmark[25],#left knee
+                      results.pose_landmarks.landmark[26],#right knee
                       results.pose_landmarks.landmark[23],#left hip
                       results.pose_landmarks.landmark[24],#right hip
                       #results.pose_landmarks.landmark[1]#left eye inner, used for waist location
@@ -135,6 +107,7 @@ with mp_pose.Pose(
             #landmark_subset.landmark[7].z = 0.0 #midpoint where hips are, depth
             #landmark_subset.landmark[7].visibility = 1.0
             
+            pointsString = "";
             i = 0
             locations = [27, 28, 0, 31, 32, 23, 24]#, 1]
             for data_point in landmark_subset.landmark:
@@ -142,7 +115,12 @@ with mp_pose.Pose(
                 allPoints.append(data_point.x)
                 allPoints.append(data_point.y)
                 allPoints.append(data_point.z)
+                if (i < 1):
+                    pointsString += "," + str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
+                else:
+                    pointsString += str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
                 i += 1
+
             #print("-----------------------------\n")
             #The center point is the midpoint of the 3D tracking - this is the middle of the waist
             mp_drawing.draw_landmarks(
@@ -154,10 +132,11 @@ with mp_pose.Pose(
             message = b'test'
             addr = ("127.0.0.1", 8888)
             start = time.time()
-            client_socket.sendto(str.encode(str(1)), addr)
+            client_socket.sendto(str.encode(pointsString), addr)
             end = time.time()
             elapsed = end - start
             print(f'{elapsed}')
+            #probably necessary to wait for a reply before continuing, or could just go the relevant stuff then whatever we pick up next in the socket
             #try:
             #    data, server = client_socket.recvfrom(1024)
             #    end = time.time()

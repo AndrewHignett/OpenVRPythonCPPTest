@@ -1,19 +1,13 @@
-/**********************************************************************
-	Name		: Example UDP Server
-	Author		: Sloan Kelly
-	Date		: 2017-12-16
-	Purpose		: Example of a bare bones UDP server
-
-***********************************************************************/
-
 #include <iostream>
 #include <WS2tcpip.h>
+//#include "Connection.h"
+// added openvr_api.dll to debug file path
 
 // Include the Winsock library (lib) file
 #pragma comment (lib, "ws2_32.lib")
 
 // Saves us from typing std::cout << etc. etc. etc.
-using namespace std;
+//using namespace std;
 
 // Main entry point into the server
 void main()
@@ -37,7 +31,7 @@ void main()
 	if (wsOk != 0)
 	{
 		// Not ok! Get out quickly
-		cout << "Can't start Winsock! " << wsOk;
+		std::cout << "Can't start Winsock! " << wsOk;
 		return;
 	}
 
@@ -55,11 +49,14 @@ void main()
 	serverHint.sin_port = htons(8888); // Convert from little to big endian
 
 	// Try and bind the socket to the IP and port
-	if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
+	bind(in, (sockaddr*)&serverHint, sizeof(serverHint));
+	//including <thread> causes issues here
+	if (::bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
 	{
-		cout << "Can't bind socket! " << WSAGetLastError() << endl;
+		std::cout << "Can't bind socket! " << WSAGetLastError() << std::endl;
 		return;
 	}
+	
 
 	////////////////////////////////////////////////////////////
 	// MAIN LOOP SETUP AND ENTRY
@@ -80,7 +77,7 @@ void main()
 		int bytesIn = recvfrom(in, buf, 1024, 0, (sockaddr*)&client, &clientLength);
 		if (bytesIn == SOCKET_ERROR)
 		{
-			cout << "Error receiving from client " << WSAGetLastError() << endl;
+			std::cout << "Error receiving from client " << WSAGetLastError() << std::endl;
 			continue;
 		}
 
@@ -92,7 +89,7 @@ void main()
 		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
 
 		// Display the message / who sent it
-		cout << "Message recv from " << clientIp << " : " << buf << endl;
+		std::cout << "Message recv from " << clientIp << " : " << buf << std::endl;
 	}
 
 	// Close socket
