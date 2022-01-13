@@ -17,7 +17,6 @@
 #include <conio.h>
 #include <tchar.h>
 
-//#define LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\ApriltagPipeIn");
 struct TrackerConnection {
 	int TrackerId;
 	int DriverId;

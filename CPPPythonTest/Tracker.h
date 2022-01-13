@@ -46,7 +46,7 @@ public:
     bool lockHeightCalib = false;
     bool disableOut = false;
 
-    GUI* gui;
+    //GUI* gui;
 
     //cv::Mat wtranslation = (cv::Mat_<double>(4, 4) << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     Quaternion<double> wrotation = Quaternion<double>(1, 0, 0, 0);

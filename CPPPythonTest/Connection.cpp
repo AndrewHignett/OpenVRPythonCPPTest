@@ -38,77 +38,23 @@ void Connection::Connect()
 {
 	//generate vector of tracker connection struct, connecting board ids to apropriate driver ids. In future, this should be done manualy in the gui
 	connectedTrackers.clear();
-	
-	if (parameters->ignoreTracker0 && parameters->trackerNum == 3)
+
+	for (int i = 0; i < parameters->trackerNum; i++)
 	{
-		for (int i = 0; i < parameters->trackerNum - 1; i++)
-		{
-			TrackerConnection temp;
-			temp.TrackerId = i + 1;
-			temp.DriverId = i;
-			temp.Name = "ApriltagTracker" + std::to_string(i + 1);
-			connectedTrackers.push_back(temp);
-		}
-		connectedTrackers[0].Role = "TrackerRole_LeftFoot";
-		connectedTrackers[1].Role = "TrackerRole_RightFoot";
+		TrackerConnection temp;
+		temp.TrackerId = i;
+		temp.DriverId = i;
+		temp.Name = "MediaPipeTracker" + std::to_string(i);
+		connectedTrackers.push_back(temp);
 	}
-	else if (parameters->ignoreTracker0)
-	{
-		for (int i = 0; i < parameters->trackerNum - 1; i++)
-		{
-			TrackerConnection temp;
-			temp.TrackerId = i + 1;
-			temp.DriverId = i;
-			temp.Name = "ApriltagTracker" + std::to_string(i + 1);
-			temp.Role = "TrackerRole_Waist";
-			connectedTrackers.push_back(temp);
-		}
-	}
-	else if (parameters->trackerNum == 3)
-	{
-		for (int i = 0; i < parameters->trackerNum; i++)
-		{
-			TrackerConnection temp;
-			temp.TrackerId = i;
-			temp.DriverId = i;
-			temp.Name = "ApriltagTracker" + std::to_string(i);
-			connectedTrackers.push_back(temp);
-		}
-		connectedTrackers[0].Role = "TrackerRole_Waist";
-		connectedTrackers[1].Role = "TrackerRole_LeftFoot";
-		connectedTrackers[2].Role = "TrackerRole_RightFoot";
-	}
-	else if (parameters->trackerNum == 2)
-	{
-		for (int i = 0; i < parameters->trackerNum; i++)
-		{
-			TrackerConnection temp;
-			temp.TrackerId = i;
-			temp.DriverId = i;
-			temp.Name = "ApriltagTracker" + std::to_string(i);
-			connectedTrackers.push_back(temp);
-		}
-		connectedTrackers[0].Role = "TrackerRole_LeftFoot";
-		connectedTrackers[1].Role = "TrackerRole_RightFoot";
-	}
-	else
-	{
-		for (int i = 0; i < parameters->trackerNum; i++)
-		{
-			TrackerConnection temp;
-			temp.TrackerId = i;
-			temp.DriverId = i;
-			temp.Name = "ApriltagTracker" + std::to_string(i + 1);
-			temp.Role = "TrackerRole_Waist";
-			connectedTrackers.push_back(temp);
-		}
-	}
+	connectedTrackers[0].Role = "TrackerRole_Waist";
+	connectedTrackers[1].Role = "TrackerRole_LeftFoot";
+	connectedTrackers[2].Role = "TrackerRole_RightFoot";
 	
 	//connect to steamvr as a client in order to get buttons.
 	
 	vr::EVRInitError error;
 	openvr_handle = VR_Init(&error, vr::VRApplication_Overlay);
-	printf("%s\n", error);
 	if (error != vr::VRInitError_None)
 	{
 		//std::string e = parameters->language.CONNECT_CLIENT_ERROR;
@@ -116,8 +62,8 @@ void Connection::Connect()
 		//wxMessageDialog dial(NULL,
 		//	e, wxT("Error"), wxOK | wxICON_ERROR);
 		//dial.ShowModal();
-		//status = DISCONNECTED;
-		//return;
+		status = DISCONNECTED;
+		return;
 	}
 	
 
@@ -178,15 +124,13 @@ void Connection::Connect()
 	
 	ret = Send("numtrackers");
 	ret >> word;
-	printf("%d", word != "numtrackers");
 	if (word != "numtrackers")
 	{
 		//wxMessageDialog dial(NULL,
 		//	parameters->language.CONNECT_DRIVER_ERROR + std::to_string(GetLastError()), wxT("Error"), wxOK | wxICON_ERROR);
 		//dial.ShowModal();	
-		printf("\ntesty\n");
 		status = DISCONNECTED;
-		//return;
+		return;
 	}
 
 	int connected_trackers;
@@ -205,6 +149,7 @@ void Connection::Connect()
 
 	//}
 	
+	printf("\n Connected Trackers: %d\n", connectedTrackers.size());
 
 	for (int i = connected_trackers; i < connectedTrackers.size(); i++)
 	{
@@ -246,7 +191,7 @@ std::istringstream Connection::Send(std::string lpszWrite)
         2000);                 // waits for 2 seconds
 
 
-	printf("SUCCESS: %d\nERROR: %d\n", fSuccess, GetLastError());
+	printf("Send input: %s\n", lpszWrite.c_str());
     if (fSuccess || GetLastError() == ERROR_MORE_DATA)
     {
         std::cout << chReadBuf << std::endl;

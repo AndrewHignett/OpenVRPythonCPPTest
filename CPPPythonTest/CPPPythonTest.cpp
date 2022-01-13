@@ -74,8 +74,7 @@ void main()
 	Parameters *params = new Parameters();
 	Connection *con = new Connection(params);
 	Tracker *tracker = new Tracker(params, con);
-	con->StartConnection();
-	
+
 
 	// Enter a loop
 	while (true)
@@ -100,6 +99,25 @@ void main()
 
 		// Display the message / who sent it
 		cout << "Message recv from " << clientIp << " : " << buf <<  endl;
+
+		switch (buf[0])
+		{
+			//these must be done in this order
+			case '+':
+				//calibrate
+				break;
+			case '%':
+				//connect
+				//con->StartConnection();
+				break;
+			case '#':
+				//start trackers
+				//tracker->Start();
+				break;
+			default:
+				//set capture data to trackers
+				break;
+		}
 	}
 
 	// Close socket

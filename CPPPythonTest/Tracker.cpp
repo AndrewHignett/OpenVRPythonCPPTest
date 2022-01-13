@@ -780,13 +780,13 @@ void Tracker::StartTrackerCalib()
 
 void Tracker::Start()
 {
-	/*
     if (mainThreadRunning)
     {
         mainThreadRunning = false;
         return;
     }
-    if (!cameraRunning)
+    /*
+	if (!cameraRunning)
     {
         wxMessageDialog dial(NULL,
             parameters->language.TRACKER_CAMERA_NOTRUNNING, wxT("Error"), wxOK | wxICON_ERROR);
@@ -809,16 +809,15 @@ void Tracker::Start()
         dial.ShowModal();
         mainThreadRunning = false;
         return;
-    }
+    }*/
     if (connection->status != connection->CONNECTED)
     {
-        wxMessageDialog dial(NULL,
-            parameters->language.TRACKER_STEAMVR_NOTCONNECTED, wxT("Error"), wxOK | wxICON_ERROR);
-        dial.ShowModal();
+        //wxMessageDialog dial(NULL,
+            //parameters->language.TRACKER_STEAMVR_NOTCONNECTED, wxT("Error"), wxOK | wxICON_ERROR);
+        //dial.ShowModal();
         mainThreadRunning = false;
         return;
     }
-	*/
     mainThreadRunning = true;
     mainThread = std::thread(&Tracker::MainLoop, this);
     mainThread.detach();
@@ -1044,6 +1043,135 @@ void Tracker::MainLoop()
 
     int trackerNum = connection->connectedTrackers.size();
     int numOfPrevValues = parameters->numOfPrevValues;
+	while (mainThreadRunning)
+	{
+		//first three variables are a position vector
+		int idx; double a; double b; double c;
+		double qw; double qx; double qy; double qz;
+		clock_t start, end;
+		//for timing our detection
+		start = clock();
+		for (int i = 0; i < trackerNum; i++)
+		{
+
+			double frameTime = double(clock() - last_frame_time) / double(CLOCKS_PER_SEC);
+
+			std::string word;
+			std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(-frameTime - parameters->camLatency));
+			ret >> word;
+			if (word != "trackerpose")
+			{
+				continue;
+			}
+
+			//first three variables are a position vector
+			//int idx; double a; double b; double c;
+
+			//second four are rotation quaternion
+			//double qw; double qx; double qy; double qz;
+			//Lets ignore quaternions of rotations for now
+			qw = 0;
+			qx = 0;
+			qy = 0;
+			qz = 0;
+
+			//last is if pose is valid: 0 is valid, 1 is late (hasnt been updated for more than 0.2 secs), -1 means invalid and is only zeros
+			int tracker_pose_valid;
+
+			//read to our variables
+			ret >> idx; ret >> a; ret >> b; ret >> c; ret >> qw; ret >> qx; ret >> qy; ret >> qz; ret >> tracker_pose_valid;
+
+
+			if (tracker_pose_valid == 0)
+			{
+
+
+			}
+			else
+			{
+
+			}
+
+		}
+		for (int i = 0; i < trackerNum; ++i) 
+		{
+			/*
+			double posValues[6] = {
+			   trackerStatus[i].boardTvec[0],
+			   trackerStatus[i].boardTvec[1],
+			   trackerStatus[i].boardTvec[2],
+			   trackerStatus[i].boardRvec[0],
+			   trackerStatus[i].boardRvec[1],
+			   trackerStatus[i].boardRvec[2] };
+
+			for (int j = 0; j < 6; j++)
+			{
+				//push new values into previous values list end and remove the one on beggining
+				trackerStatus[i].prevLocValues[j].push_back(posValues[j]);
+				if (trackerStatus[i].prevLocValues[j].size() > numOfPrevValues)
+				{
+					trackerStatus[i].prevLocValues[j].erase(trackerStatus[i].prevLocValues[j].begin());
+				}
+
+				std::vector<double> valArray(trackerStatus[i].prevLocValues[j]);
+				sort(valArray.begin(), valArray.end());
+
+				posValues[j] = valArray[valArray.size() / 2];
+
+			}
+			//save fitted values back to our variables
+			trackerStatus[i].boardTvec[0] = posValues[0];
+			trackerStatus[i].boardTvec[1] = posValues[1];
+			trackerStatus[i].boardTvec[2] = posValues[2];
+			trackerStatus[i].boardRvec[0] = posValues[3];
+			trackerStatus[i].boardRvec[1] = posValues[4];
+			trackerStatus[i].boardRvec[2] = posValues[5];
+
+			cv::Mat rpos = cv::Mat_<double>(4, 1);
+
+			//transform boards position based on our calibration data
+
+			for (int x = 0; x < 3; x++)
+			{
+				rpos.at<double>(x, 0) = trackerStatus[i].boardTvec[x];
+			}
+			rpos.at<double>(3, 0) = 1;
+			rpos = wtranslation * rpos;
+
+			//convert rodriguez rotation to quaternion
+			Quaternion<double> q = rodr2quat(trackerStatus[i].boardRvec[0], trackerStatus[i].boardRvec[1], trackerStatus[i].boardRvec[2]);
+
+			//cv::aruco::drawAxis(drawImg, parameters->camMat, parameters->distCoeffs, boardRvec[i], boardTvec[i], 0.05);
+
+			q = Quaternion<double>(0, 0, 1, 0) * (wrotation * q) * Quaternion<double>(0, 0, 1, 0);
+
+			double a = -rpos.at<double>(0, 0);
+			double b = rpos.at<double>(1, 0);
+			double c = -rpos.at<double>(2, 0);
+			*/
+			double factor;
+			factor = parameters->smoothingFactor;
+
+			if (factor < 0)
+				factor = 0;
+			else if (factor >= 1)
+				factor = 0.99;
+
+			end = clock();
+			double frameTime = double(end - last_frame_time) / double(CLOCKS_PER_SEC);
+
+			//send all the values
+			//frame time is how much time passed since frame was acquired.
+			if (!multicamAutocalib)
+			{
+				//connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, q.w, q.x, q.y, q.z, -frameTime - parameters->camLatency, factor);
+				connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, qw, qx, qy, qz, -frameTime - parameters->camLatency, factor);
+			}
+		}
+	}
+	
+
+
 
     //these variables are used to save detections of apriltags, so we dont define them every frame
 
