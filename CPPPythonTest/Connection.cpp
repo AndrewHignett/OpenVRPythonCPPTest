@@ -1,8 +1,9 @@
 #include "Connection.h"
+//#define LPCWSTR lpszPipename = TEXT("\\\\.\\pipe\\ApriltagPipeIn");
 
-Connection::Connection()//Parameters* params)
+Connection::Connection(Parameters* params)
 {
-    //parameters = params;
+    parameters = params;
 }
 
 void Connection::StartConnection()
@@ -26,101 +27,101 @@ void Connection::StartConnection()
         Sleep(1000);
         status = DISCONNECTED;
     }
+	
+
     std::thread connectThread(&Connection::Connect, this);
+	
     connectThread.detach();
 }
 
 void Connection::Connect()
 {
-    //generate vector of tracker connection struct, connecting board ids to apropriate driver ids. In future, this should be done manualy in the gui
-    connectedTrackers.clear();
+	//generate vector of tracker connection struct, connecting board ids to apropriate driver ids. In future, this should be done manualy in the gui
+	connectedTrackers.clear();
+	
+	if (parameters->ignoreTracker0 && parameters->trackerNum == 3)
+	{
+		for (int i = 0; i < parameters->trackerNum - 1; i++)
+		{
+			TrackerConnection temp;
+			temp.TrackerId = i + 1;
+			temp.DriverId = i;
+			temp.Name = "ApriltagTracker" + std::to_string(i + 1);
+			connectedTrackers.push_back(temp);
+		}
+		connectedTrackers[0].Role = "TrackerRole_LeftFoot";
+		connectedTrackers[1].Role = "TrackerRole_RightFoot";
+	}
+	else if (parameters->ignoreTracker0)
+	{
+		for (int i = 0; i < parameters->trackerNum - 1; i++)
+		{
+			TrackerConnection temp;
+			temp.TrackerId = i + 1;
+			temp.DriverId = i;
+			temp.Name = "ApriltagTracker" + std::to_string(i + 1);
+			temp.Role = "TrackerRole_Waist";
+			connectedTrackers.push_back(temp);
+		}
+	}
+	else if (parameters->trackerNum == 3)
+	{
+		for (int i = 0; i < parameters->trackerNum; i++)
+		{
+			TrackerConnection temp;
+			temp.TrackerId = i;
+			temp.DriverId = i;
+			temp.Name = "ApriltagTracker" + std::to_string(i);
+			connectedTrackers.push_back(temp);
+		}
+		connectedTrackers[0].Role = "TrackerRole_Waist";
+		connectedTrackers[1].Role = "TrackerRole_LeftFoot";
+		connectedTrackers[2].Role = "TrackerRole_RightFoot";
+	}
+	else if (parameters->trackerNum == 2)
+	{
+		for (int i = 0; i < parameters->trackerNum; i++)
+		{
+			TrackerConnection temp;
+			temp.TrackerId = i;
+			temp.DriverId = i;
+			temp.Name = "ApriltagTracker" + std::to_string(i);
+			connectedTrackers.push_back(temp);
+		}
+		connectedTrackers[0].Role = "TrackerRole_LeftFoot";
+		connectedTrackers[1].Role = "TrackerRole_RightFoot";
+	}
+	else
+	{
+		for (int i = 0; i < parameters->trackerNum; i++)
+		{
+			TrackerConnection temp;
+			temp.TrackerId = i;
+			temp.DriverId = i;
+			temp.Name = "ApriltagTracker" + std::to_string(i + 1);
+			temp.Role = "TrackerRole_Waist";
+			connectedTrackers.push_back(temp);
+		}
+	}
+	
+	//connect to steamvr as a client in order to get buttons.
+	
+	vr::EVRInitError error;
+	openvr_handle = VR_Init(&error, vr::VRApplication_Overlay);
+	printf("%s\n", error);
+	if (error != vr::VRInitError_None)
+	{
+		//std::string e = parameters->language.CONNECT_CLIENT_ERROR;
+		//e += vr::VR_GetVRInitErrorAsEnglishDescription(error);
+		//wxMessageDialog dial(NULL,
+		//	e, wxT("Error"), wxOK | wxICON_ERROR);
+		//dial.ShowModal();
+		//status = DISCONNECTED;
+		//return;
+	}
+	
 
-
-	/*
-    if (parameters->ignoreTracker0 && parameters->trackerNum == 3)
-    {
-        for (int i = 0; i < parameters->trackerNum - 1; i++)
-        {
-            TrackerConnection temp;
-            temp.TrackerId = i + 1;
-            temp.DriverId = i;
-            temp.Name = "ApriltagTracker" + std::to_string(i + 1);
-            connectedTrackers.push_back(temp);
-        }
-        connectedTrackers[0].Role = "TrackerRole_LeftFoot";
-        connectedTrackers[1].Role = "TrackerRole_RightFoot";
-    }
-    else if (parameters->ignoreTracker0)
-    {
-        for (int i = 0; i < parameters->trackerNum - 1; i++)
-        {
-            TrackerConnection temp;
-            temp.TrackerId = i + 1;
-            temp.DriverId = i;
-            temp.Name = "ApriltagTracker" + std::to_string(i + 1);
-            temp.Role = "TrackerRole_Waist";
-            connectedTrackers.push_back(temp);
-        }
-    }
-    else if(parameters->trackerNum == 3)
-    {
-        for (int i = 0; i < parameters->trackerNum; i++)
-        {
-            TrackerConnection temp;
-            temp.TrackerId = i;
-            temp.DriverId = i;
-            temp.Name = "ApriltagTracker" + std::to_string(i);
-            connectedTrackers.push_back(temp);
-        }
-        connectedTrackers[0].Role = "TrackerRole_Waist";
-        connectedTrackers[1].Role = "TrackerRole_LeftFoot";
-        connectedTrackers[2].Role = "TrackerRole_RightFoot";
-    }
-    else if (parameters->trackerNum == 2)
-    {
-        for (int i = 0; i < parameters->trackerNum; i++)
-        {
-            TrackerConnection temp;
-            temp.TrackerId = i;
-            temp.DriverId = i;
-            temp.Name = "ApriltagTracker" + std::to_string(i);
-            connectedTrackers.push_back(temp);
-        }
-        connectedTrackers[0].Role = "TrackerRole_LeftFoot";
-        connectedTrackers[1].Role = "TrackerRole_RightFoot";
-    }
-    else
-    {
-        for (int i = 0; i < parameters->trackerNum; i++)
-        {
-            TrackerConnection temp;
-            temp.TrackerId = i;
-            temp.DriverId = i;
-            temp.Name = "ApriltagTracker" + std::to_string(i + 1);
-            temp.Role = "TrackerRole_Waist";
-            connectedTrackers.push_back(temp);
-        }
-    }
-	*/
-
-    //connect to steamvr as a client in order to get buttons.
-    vr::EVRInitError error;
-    openvr_handle = VR_Init(&error, vr::VRApplication_Overlay);
-
-    if (error != vr::VRInitError_None)
-    {
-		/*
-        std::string e = parameters->language.CONNECT_CLIENT_ERROR;
-        e += vr::VR_GetVRInitErrorAsEnglishDescription(error);
-        wxMessageDialog dial(NULL,
-            e, wxT("Error"), wxOK | wxICON_ERROR);
-        dial.ShowModal();
-		*/
-        status = DISCONNECTED;
-        return;
-    }
-
-    /*
+	 /*
     vr::HmdMatrix34_t testZeroToStanding = openvr_handle->GetRawZeroPoseToStandingAbsoluteTrackingPose();
 
     std::string e = "Zero pose to standing: \n ";
@@ -152,89 +153,89 @@ void Connection::Connect()
     dial2.ShowModal();
 
     */
-    DWORD  retval = 0;
-//    BOOL   success;
-    char  buffer[1024] = "";
-    char** lppPart = { NULL };
 
-    retval = GetFullPathNameA("att_actions.json",
-        BUFSIZE,
-        buffer,
-        lppPart);
+	DWORD  retval = 0;
+	BOOL   success;
+	char  buffer[1024] = "";
+	char** lppPart = { NULL };
 
-    vr::VRInput()->SetActionManifestPath(buffer);
+	retval = GetFullPathNameA("att_actions.json",
+		BUFSIZE,
+		buffer,
+		lppPart);
+	
+	vr::VRInput()->SetActionManifestPath(buffer);
+	
+	//vr::VRInput()->GetActionHandle("/actions/demo/in/grab_camera", &m_actionCamera);
+	//vr::VRInput()->GetActionHandle("/actions/demo/in/grab_trackers", &m_actionTrackers);
+	//vr::VRInput()->GetActionHandle("/actions/demo/in/Hand_Left", &m_actionHand);
 
-    vr::VRInput()->GetActionHandle("/actions/demo/in/grab_camera", &m_actionCamera);
-    vr::VRInput()->GetActionHandle("/actions/demo/in/grab_trackers", &m_actionTrackers);
-    vr::VRInput()->GetActionHandle("/actions/demo/in/Hand_Left", &m_actionHand);
+	//vr::VRInput()->GetActionSetHandle("/actions/demo", &m_actionsetDemo);
 
-    vr::VRInput()->GetActionSetHandle("/actions/demo", &m_actionsetDemo);
+	std::istringstream ret;
+	std::string word;
+	
+	
+	ret = Send("numtrackers");
+	ret >> word;
+	printf("%d", word != "numtrackers");
+	if (word != "numtrackers")
+	{
+		//wxMessageDialog dial(NULL,
+		//	parameters->language.CONNECT_DRIVER_ERROR + std::to_string(GetLastError()), wxT("Error"), wxOK | wxICON_ERROR);
+		//dial.ShowModal();	
+		printf("\ntesty\n");
+		status = DISCONNECTED;
+		//return;
+	}
 
-    std::istringstream ret;
-    std::string word;
+	int connected_trackers;
+	ret >> connected_trackers;
 
-    ret = Send("numtrackers");
-    ret >> word;
-    if (word != "numtrackers")
-    {
-		/*
-        wxMessageDialog dial(NULL,
-            parameters->language.CONNECT_DRIVER_ERROR + std::to_string(GetLastError()), wxT("Error"), wxOK | wxICON_ERROR);
-        dial.ShowModal();
-		*/
-        status = DISCONNECTED;
-        return;
-    }
-    int connected_trackers;
-    ret >> connected_trackers;
+	ret >> word;
+	
+	//if (word != parameters->driverversion)
+	//{
 
-    ret >> word;
-	/*
-    if (word != parameters->driverversion)
-    {
-		
-        std::string e = "";
-        e += parameters->language.CONNECT_DRIVER_MISSMATCH1 + word + parameters->language.CONNECT_DRIVER_MISSMATCH2 + parameters->driverversion;
-        wxMessageDialog dial(NULL,
-            e, wxT("Warning"), wxOK | wxICON_WARNING);
-        dial.ShowModal();
-		
-    }
-	*/
+	//	std::string e = "";
+	//	e += parameters->language.CONNECT_DRIVER_MISSMATCH1 + word + parameters->language.CONNECT_DRIVER_MISSMATCH2 + parameters->driverversion;
+	//	wxMessageDialog dial(NULL,
+	//		e, wxT("Warning"), wxOK | wxICON_WARNING);
+	//	dial.ShowModal();
 
-    for (int i = connected_trackers; i < connectedTrackers.size(); i++)
-    {
-        ret = Send("addtracker " + connectedTrackers[i].Name + " " + connectedTrackers[i].Role);
-        ret >> word;
-        if (word != "added")
-        {
-			/*
-            wxMessageDialog dial(NULL,
-                parameters->language.CONNECT_SOMETHINGWRONG, wxT("Error"), wxOK | wxICON_ERROR);
-            dial.ShowModal();
-			*/
-            status = DISCONNECTED;
-            return;
-        }
-    }
+	//}
+	
 
-    ret = Send("addstation");
+	for (int i = connected_trackers; i < connectedTrackers.size(); i++)
+	{
+		ret = Send("addtracker " + connectedTrackers[i].Name + " " + connectedTrackers[i].Role);
+		ret >> word;
+		if (word != "added")
+		{
+			//wxMessageDialog dial(NULL,
+			//	parameters->language.CONNECT_SOMETHINGWRONG, wxT("Error"), wxOK | wxICON_ERROR);
+			//dial.ShowModal();
+			status = DISCONNECTED;
+			return;
+		}
+	}
 
-    std::string sstr = "";
-    //sstr += "settings 120 " + std::to_string(parameters->smoothingFactor);
+	//ret = Send("addstation");
 
-    //ret = Send("settings 120 " + std::to_string(parameters->smoothingFactor) + " " + std::to_string(parameters->additionalSmoothing));
+	std::string sstr = "";
+	//sstr += "settings 120 " + std::to_string(parameters->smoothingFactor);
+
+	//ret = Send("settings 120 " + std::to_string(parameters->smoothingFactor) + " " + std::to_string(parameters->additionalSmoothing));
 
 	//The above might be necessary - features of parameters are in parameters.h, can avoid this and use these, they are hard coded
 
-    //set that connection is established
-    status = CONNECTED;
+	//set that connection is established
+	status = CONNECTED;
 }
 
 std::istringstream Connection::Send(std::string lpszWrite)
 {
     //function expecting LPWGSTR instead of LPCASDFGEGTFSTR you are passing? I have no bloody clue what any of that even means. It works for me, so I'll leave the dumb conversions and casts in. If it doesn't for you, have fun.
-
     fSuccess = CallNamedPipe(
         lpszPipename,        // pipe name
         (LPVOID)lpszWrite.c_str(),           // message to server
@@ -244,6 +245,8 @@ std::istringstream Connection::Send(std::string lpszWrite)
         &cbRead,                // number of bytes read
         2000);                 // waits for 2 seconds
 
+
+	printf("SUCCESS: %d\nERROR: %d\n", fSuccess, GetLastError());
     if (fSuccess || GetLastError() == ERROR_MORE_DATA)
     {
         std::cout << chReadBuf << std::endl;

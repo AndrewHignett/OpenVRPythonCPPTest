@@ -1,6 +1,8 @@
 #include <iostream>
 #include <WS2tcpip.h>
 #include "Connection.h"
+#include "Parameters.h"
+#include "Tracker.h"
 
 // added openvr_api.dll to debug file path
 
@@ -67,9 +69,11 @@ void main()
 	int clientLength = sizeof(client); // The size of the client information
 
 	char buf[1024];
-
+	
 	//test
-	Connection *con = new Connection();
+	Parameters *params = new Parameters();
+	Connection *con = new Connection(params);
+	Tracker *tracker = new Tracker(params, con);
 	con->StartConnection();
 	
 
@@ -104,3 +108,9 @@ void main()
 	// Shutdown winsock
 	WSACleanup();
 }
+
+
+//use hand positions, this could be used for scaling coordinate space and dealing with relative locations
+//This would be easy if moving close to and further away from the camera makes no difference to the coorindates
+
+//Track direction the user is facing, this should be useable for foot tracker direction

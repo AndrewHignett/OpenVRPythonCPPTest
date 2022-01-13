@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\testingFromKinect">
+      <UniqueIdentifier>{a202fc04-4123-48ba-8f6e-0fe093996628}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPPPythonTest.cpp">
@@ -21,10 +24,48 @@
     <ClCompile Include="Connection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Parameters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Quaternion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Connection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Parameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vrinputemulator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="att_actions.json">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="att_bindings_empty.json">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="att_bindings_generic.json">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="att_bindings_knuckles.json">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="att_bindings_vive_controller.json">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

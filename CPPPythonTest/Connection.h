@@ -4,15 +4,20 @@
 //#include <wx/wx.h>
 #pragma warning(pop)
 
-//#include "Parameters.h"
+#include "Parameters.h"
 #include <windows.h>
 #include <openvr.h>
 #include <thread>
-//#include <string>
+#include <string>
 #include <vector>
 #include <sstream>
 #include <iostream>
 
+#include <stdio.h>
+#include <conio.h>
+#include <tchar.h>
+
+//#define LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\ApriltagPipeIn");
 struct TrackerConnection {
 	int TrackerId;
 	int DriverId;
@@ -26,9 +31,9 @@ public:
 	const int DISCONNECTED = 0;
 	const int WAITING = 1;
 	const int CONNECTED = 2;
-	//Connection(Parameters*);
+	Connection(Parameters*);
 	Connection();
-	//Parameters* parameters;
+	Parameters* parameters;
 	void StartConnection();
 	std::istringstream Send(std::string lpszWrite);
 	std::istringstream SendTracker(int id, double a, double b, double c, double qw, double qx, double qy, double qz, double time, double smoothing);
@@ -46,8 +51,9 @@ private:
 	CHAR chReadBuf[1024];
 	BOOL fSuccess;
 	DWORD cbRead;
-	LPTSTR lpszPipename = new TCHAR();
-		//TEXT("\\\\.\\pipe\\ApriltagPipeIn");
+	//LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\ApriltagPipeIn");
+	LPCWSTR lpszPipename = TEXT("\\\\.\\pipe\\ApriltagPipeIn");
+	//wchar_t const* lpszPipename =  TEXT("\\\\.\\pipe\\CPPPythonTestPipeIn3");
 
 	vr::VRActionHandle_t m_actionCamera = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionsetDemo = vr::k_ulInvalidActionHandle;

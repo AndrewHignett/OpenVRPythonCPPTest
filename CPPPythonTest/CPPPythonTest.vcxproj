@@ -165,9 +165,23 @@
   <ItemGroup>
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="CPPPythonTest.cpp" />
+    <ClCompile Include="Parameters.cpp" />
+    <ClCompile Include="Quaternion.cpp" />
+    <ClCompile Include="Tracker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Connection.h" />
+    <ClInclude Include="Parameters.h" />
+    <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="Tracker.h" />
+    <ClInclude Include="vrinputemulator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="att_actions.json" />
+    <None Include="att_bindings_empty.json" />
+    <None Include="att_bindings_generic.json" />
+    <None Include="att_bindings_knuckles.json" />
+    <None Include="att_bindings_vive_controller.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
