@@ -108,11 +108,11 @@ void main()
 				break;
 			case '%':
 				//connect
-				//con->StartConnection();
+				con->StartConnection();
 				break;
 			case '#':
 				//start trackers
-				//tracker->Start();
+				tracker->Start();
 				break;
 			default:
 				//set capture data to trackers

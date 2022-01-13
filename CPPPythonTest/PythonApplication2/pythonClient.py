@@ -6,14 +6,10 @@ mp_pose = mp.solutions.pose
 from mediapipe.framework.formats import landmark_pb2
 from math import ceil
 import tkinter
-
-
-
-#Tried Boost, this is bad and does not work
-#https://www.geeksforgeeks.org/how-to-call-c-c-from-python/ might be good
-
 import time
 import socket
+
+port = 8888
 
 #for pings in range(10000):
     #client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -33,13 +29,13 @@ import socket
 def sendToServer(thisMessage):
      client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
      client_socket.settimeout(0.002)
-     addr = ("127.0.0.1", 8888)
+     addr = ("127.0.0.1", port)
      client_socket.sendto((thisMessage), addr)
 
 def calibrate():
     pointsString = "+"
-    for point in calibrationTracking():
-        pointsString += point
+    #for point in calibrationTracking():
+    #    pointsString += point
     #stick UI in python
     print("big boi calibration\n")
     btnConnect["state"] = "normal"
@@ -101,6 +97,8 @@ def calibrationTracking():
     return calibrationPoints
 
 def tracking():
+    #This is not threaded, so the UI will freeze on this
+    btnTracking["text"] = "Stop tracking"
     # For webcam input:
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 427)
@@ -139,22 +137,25 @@ def tracking():
             if (results.pose_landmarks is not None):
                 #for data_point in results.pose_landmarks.landmark:
                     #print('x is', data_point.x, 'y is', data_point.y, 'z is', data_point.z, 'visibility is', data_point.visibility)
+
+                #WHAT LEVEL OF VISIBILITY IS APPROPRIATE?
                 from mediapipe.framework.formats import landmark_pb2
                 landmark_subset = landmark_pb2.NormalizedLandmarkList(
                       landmark = [
-                          results.pose_landmarks.landmark[27],#left ankle
-                          results.pose_landmarks.landmark[28],#right ankle
-                          results.pose_landmarks.landmark[0],#nose
+                          results.pose_landmarks.landmark[27],#left ankle - tracker 1
+                          results.pose_landmarks.landmark[28],#right ankle - tracker 2
+                          results.pose_landmarks.landmark[0],#nose - hmd?
                           #results.pose_landmarks.landmark[25],#left knee
                           #results.pose_landmarks.landmark[26],#right knee
-                          results.pose_landmarks.landmark[23],#left hip
-                          results.pose_landmarks.landmark[24],#right hip
+                          results.pose_landmarks.landmark[23],#left hip - for waist
+                          results.pose_landmarks.landmark[24],#right hip - for waist
                           #results.pose_landmarks.landmark[1]#left eye inner, used for waist location
                           #hand position had be used for controllers 20 and 18 average gives rough midpoint of right controller and 17 and 19 left conntroller
                           results.pose_landmarks.landmark[17],#left pinky
                           results.pose_landmarks.landmark[19],#left index
                           results.pose_landmarks.landmark[18],#right pink
                           results.pose_landmarks.landmark[20]#right index
+                          #IN THEORY THE WAIST POINT SHOULD BE 0,0,0 - we can treat it as this then modify accordingly (with rotations and x-y-z translationns based on hand positions
                       ]
                 )
             
@@ -172,16 +173,17 @@ def tracking():
                 #landmark_subset.landmark[7].visibility = 1.0
             
                 pointsString = "";
-                i = 0
+                first = True;
                 for data_point in landmark_subset.landmark:
                     allPoints.append(data_point.x)
                     allPoints.append(data_point.y)
                     allPoints.append(data_point.z)
-                    if (i < 1):
+                    if (first):
                         pointsString += "," + str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
+                        first = False
                     else:
                         pointsString += str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
-                    i += 1
+                    
 
                 mp_drawing.draw_landmarks(
                     image,
@@ -189,16 +191,17 @@ def tracking():
                     results.pose_landmarks,
                     mp_pose.POSE_CONNECTIONS,
                     landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
-
-
-                client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                client_socket.settimeout(0.002)
-                message = b'test'
-                addr = ("127.0.0.1", 8888)
-                start = time.time()
-                client_socket.sendto(str.encode(pointsString), addr)
-                end = time.time()
-                elapsed = end - start
+ 
+                sendToServer(str.encode(pointsString))
+                
+                #client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                #client_socket.settimeout(0.002)
+                #message = b'test'
+                #addr = ("127.0.0.1", port)
+                #start = time.time()
+                #client_socket.sendto(str.encode(pointsString), addr)
+                #end = time.time()
+                #elapsed = end - start
                 #print(f'{elapsed}')
                 #probably necessary to wait for a reply before continuing, or could just go the relevant stuff then whatever we pick up next in the socket
                 #try:
