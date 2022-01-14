@@ -287,18 +287,18 @@ int Connection::GetButtonStates()
 void Connection::GetControllerPose(double outpose[])
 {
     
-    //std::istringstream ret = Send("getdevicepose 1");
-    //std::string word;
+    std::istringstream ret = Send("getdevicepose 1");
+    std::string word;
 
     //first three variables are a position vector
-    //int idx; 
+    int idx; 
     double a; double b; double c;
 
     //second four are rotation quaternion
     double qw; double qx; double qy; double qz;
 
     //read to our variables
-    //ret >> word; ret >> idx; ret >> a; ret >> b; ret >> c; ret >> qw; ret >> qx; ret >> qy; ret >> qz;
+    ret >> word; ret >> idx; ret >> a; ret >> b; ret >> c; ret >> qw; ret >> qx; ret >> qy; ret >> qz;
 
     vr::VRActiveActionSet_t actionSet = { 0 };
     actionSet.ulActionSet = m_actionsetDemo;
@@ -330,6 +330,8 @@ void Connection::GetControllerPose(double outpose[])
 
     a = -a;
     c = -c;
+
+	printf("ControllerPose: %d, %d, %d, %d, %d, %d, %d", a, b, c, qw, qx, qy, qz);
 
     outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
 }

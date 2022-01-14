@@ -1043,8 +1043,34 @@ void Tracker::MainLoop()
 
     int trackerNum = connection->connectedTrackers.size();
     int numOfPrevValues = parameters->numOfPrevValues;
+
+	//setup all variables that need to be stored for each tracker and initialize them
+	std::vector<TrackerStatus> trackerStatus = std::vector<TrackerStatus>(trackerNum, TrackerStatus());
+	for (int i = 0; i < trackerStatus.size(); i++)
+	{
+		//trackerStatus[i].boardFound = false;
+		//trackerStatus[i].boardRvec = cv::Vec3d(0, 0, 0);
+		//trackerStatus[i].boardTvec = cv::Vec3d(0, 0, 0);
+		trackerStatus[i].prevLocValues = std::vector<std::vector<double>>(7, std::vector<double>());
+	}
+	//previous values, used for moving median to remove any outliers.
+	std::vector<double> prevLocValuesX;
+
+	//the X axis, it is simply numbers 0-10 (or the amount of previous values we have)
+	for (int j = 0; j < numOfPrevValues; j++)
+	{
+		prevLocValuesX.push_back(j);
+	}
+
+
+	//trackers = this->trackers;
+
 	while (mainThreadRunning)
 	{
+
+		//save last frame timee, original code took this from the image, for me I can have it here, so lonng as it's consistent between trackers
+		last_frame_time = clock();
+
 		//first three variables are a position vector
 		int idx; double a; double b; double c;
 		double qw; double qx; double qy; double qz;
@@ -1057,7 +1083,8 @@ void Tracker::MainLoop()
 			double frameTime = double(clock() - last_frame_time) / double(CLOCKS_PER_SEC);
 
 			std::string word;
-			std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(-frameTime - parameters->camLatency));
+			//std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(-frameTime - parameters->camLatency));
+			std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(0));
 			ret >> word;
 			if (word != "trackerpose")
 			{
@@ -1103,7 +1130,7 @@ void Tracker::MainLoop()
 			   trackerStatus[i].boardRvec[0],
 			   trackerStatus[i].boardRvec[1],
 			   trackerStatus[i].boardRvec[2] };
-
+			*/
 			for (int j = 0; j < 6; j++)
 			{
 				//push new values into previous values list end and remove the one on beggining
@@ -1119,6 +1146,7 @@ void Tracker::MainLoop()
 				posValues[j] = valArray[valArray.size() / 2];
 
 			}
+			/*
 			//save fitted values back to our variables
 			trackerStatus[i].boardTvec[0] = posValues[0];
 			trackerStatus[i].boardTvec[1] = posValues[1];
@@ -1165,8 +1193,13 @@ void Tracker::MainLoop()
 			if (!multicamAutocalib)
 			{
 				//connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, q.w, q.x, q.y, q.z, -frameTime - parameters->camLatency, factor);
-				connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, qw, qx, qy, qz, -frameTime - parameters->camLatency, factor);
+				//connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, qw, qx, qy, qz, -frameTime - parameters->camLatency, factor);
+				connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, qw, qx, qy, qz, 0, 0);
 			}
+
+			//testing
+			double outpose[7];
+			connection->GetControllerPose(outpose);
 		}
 	}
 }
