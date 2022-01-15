@@ -7,8 +7,8 @@
 #include <math.h>
 
 //#include <opencv2/aruco.hpp>
-//#include <opencv2/core.hpp>
-//#include <opencv2/videoio.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/videoio.hpp>
 
 //#include "MyApp.h"
 
@@ -16,10 +16,10 @@
 
 
 struct TrackerStatus {
-    //cv::Vec3d boardRvec, boardTvec, boardTvecDriver;
+    cv::Vec3d boardRvec, boardTvec, boardTvecDriver;
     bool boardFound, boardFoundDriver;
     std::vector<std::vector<double>> prevLocValues;
-    //cv::Point2d maskCenter;
+    cv::Point2d maskCenter;
 };
 
 class Connection;
@@ -48,10 +48,12 @@ public:
 
     //GUI* gui;
 
-    //cv::Mat wtranslation = (cv::Mat_<double>(4, 4) << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+	//cv::Mat wtranslation = (cv::Mat_<double>(4, 4) << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     Quaternion<double> wrotation = Quaternion<double>(1, 0, 0, 0);
 
     double calibScale = 1;
+
+	void testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz);
 
 private:
     void CameraLoop();

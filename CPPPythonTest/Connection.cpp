@@ -149,7 +149,7 @@ void Connection::Connect()
 
 	//}
 	
-	printf("\n Connected Trackers: %d\n", connectedTrackers.size());
+	//printf("\n Connected Trackers: %d\n", connectedTrackers.size());
 
 	for (int i = connected_trackers; i < connectedTrackers.size(); i++)
 	{
@@ -167,7 +167,7 @@ void Connection::Connect()
 
 	//ret = Send("addstation");
 
-	std::string sstr = "";
+	//std::string sstr = "";
 	//sstr += "settings 120 " + std::to_string(parameters->smoothingFactor);
 
 	//ret = Send("settings 120 " + std::to_string(parameters->smoothingFactor) + " " + std::to_string(parameters->additionalSmoothing));
@@ -191,7 +191,7 @@ std::istringstream Connection::Send(std::string lpszWrite)
         2000);                 // waits for 2 seconds
 
 
-	printf("Send input: %s\n", lpszWrite.c_str());
+	//printf("Send input: %s\n", lpszWrite.c_str());
     if (fSuccess || GetLastError() == ERROR_MORE_DATA)
     {
         std::cout << chReadBuf << std::endl;

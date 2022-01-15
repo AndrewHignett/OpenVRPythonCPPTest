@@ -1,6 +1,6 @@
 #pragma once
 //#include <iostream>
-//#include <opencv2/core.hpp>
+#include <opencv2/core.hpp>
 //#include <opencv2/aruco.hpp>
 #include "Quaternion.h"
 #include <vector>
@@ -22,7 +22,7 @@ public:
 	//cv::Mat stdDeviationsIntrinsics;
 	std::vector<double> perViewErrors;
 	//std::vector<std::vector<cv::Point2f>> allCharucoCorners;
-	std::vector<std::vector<int>> allCharucoIds;
+	//std::vector<std::vector<int>> allCharucoIds;
 	//std::vector<cv::Ptr<cv::aruco::Board>> trackers;
 	int trackerNum = 3;
 	double markerSize = 0.05;

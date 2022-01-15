@@ -172,19 +172,26 @@ def tracking():
                 #landmark_subset.landmark[7].z = 0.0 #midpoint where hips are, depth
                 #landmark_subset.landmark[7].visibility = 1.0
             
+
+
+                #currently adjusting based on nright hand
                 pointsString = "";
                 first = True;
                 for data_point in landmark_subset.landmark:
                     allPoints.append(data_point.x)
                     allPoints.append(data_point.y)
                     allPoints.append(data_point.z)
-                    if (first):
-                        pointsString += "," + str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
-                        first = False
+                    if (not first):
+                        #pointsString += "," + str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
+                        pointsString += "," + str(data_point.x - (results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str(data_point.y - (results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str(data_point.z - (results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2)
                     else:
-                        pointsString += str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
+                        #pointsString += str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
+                        pointsString += str(data_point.x - (results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str(data_point.y - (results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str(data_point.z - (results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2)
+                        first = False;
                     
+                
 
+                image[0:480,0:640] = (0,0,0);
                 mp_drawing.draw_landmarks(
                     image,
                     #landmark_subset)

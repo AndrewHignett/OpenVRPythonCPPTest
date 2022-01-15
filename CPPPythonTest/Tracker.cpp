@@ -1049,8 +1049,8 @@ void Tracker::MainLoop()
 	for (int i = 0; i < trackerStatus.size(); i++)
 	{
 		//trackerStatus[i].boardFound = false;
-		//trackerStatus[i].boardRvec = cv::Vec3d(0, 0, 0);
-		//trackerStatus[i].boardTvec = cv::Vec3d(0, 0, 0);
+		trackerStatus[i].boardRvec = cv::Vec3d(0, 0, 0);
+		trackerStatus[i].boardTvec = cv::Vec3d(0, 0, 0);
 		trackerStatus[i].prevLocValues = std::vector<std::vector<double>>(7, std::vector<double>());
 	}
 	//previous values, used for moving median to remove any outliers.
@@ -1065,8 +1065,8 @@ void Tracker::MainLoop()
 
 	//trackers = this->trackers;
 
-	while (mainThreadRunning)
-	{
+	//while (mainThreadRunning)
+	//{
 
 		//save last frame timee, original code took this from the image, for me I can have it here, so lonng as it's consistent between trackers
 		last_frame_time = clock();
@@ -1083,12 +1083,20 @@ void Tracker::MainLoop()
 			double frameTime = double(clock() - last_frame_time) / double(CLOCKS_PER_SEC);
 
 			std::string word;
-			//std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(-frameTime - parameters->camLatency));
-			std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(0));
+			std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(-frameTime - parameters->camLatency));
+			//std::istringstream ret = connection->Send("gettrackerpose " + std::to_string(i) + std::to_string(0));
 			ret >> word;
 			if (word != "trackerpose")
 			{
 				continue;
+			}
+
+			printf("       TRACKERPOSE: ");
+			
+			std::string token;
+			#include <sstream>
+			while (std::getline(ret, token, ',')) {
+				std::cout << token << '\n';
 			}
 
 			//first three variables are a position vector
@@ -1134,7 +1142,7 @@ void Tracker::MainLoop()
 			for (int j = 0; j < 6; j++)
 			{
 				//push new values into previous values list end and remove the one on beggining
-				trackerStatus[i].prevLocValues[j].push_back(posValues[j]);
+				//trackerStatus[i].prevLocValues[j].push_back(posValues[j]);
 				if (trackerStatus[i].prevLocValues[j].size() > numOfPrevValues)
 				{
 					trackerStatus[i].prevLocValues[j].erase(trackerStatus[i].prevLocValues[j].begin());
@@ -1143,7 +1151,7 @@ void Tracker::MainLoop()
 				std::vector<double> valArray(trackerStatus[i].prevLocValues[j]);
 				sort(valArray.begin(), valArray.end());
 
-				posValues[j] = valArray[valArray.size() / 2];
+				//posValues[j] = valArray[valArray.size() / 2];
 
 			}
 			/*
@@ -1194,12 +1202,33 @@ void Tracker::MainLoop()
 			{
 				//connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, q.w, q.x, q.y, q.z, -frameTime - parameters->camLatency, factor);
 				//connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, qw, qx, qy, qz, -frameTime - parameters->camLatency, factor);
-				connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, qw, qx, qy, qz, 0, 0);
+				//connection->SendTracker(connection->connectedTrackers[i].DriverId, a, b, c, qw, qx, qy, qz, -0.001, 0.5);
+				//connection->SendTracker(connection->connectedTrackers[i].DriverId, 0, 0, 0, qw, qx, qy, qz, -0.001, 0.5);
 			}
+			//connection->SendTracker(connection->connectedTrackers[i].DriverId, 0, 0, 0, qw, qx, qy, qz, -0.001, 0.5);
+			//connection->SendTracker(connection->connectedTrackers[i].DriverId, -0.884917, 0.652706, 0.469284, 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);
+			//run the above with x, y, z corrected based on tracking
 
 			//testing
 			double outpose[7];
 			connection->GetControllerPose(outpose);
 		}
-	}
+	//}
+}
+
+//could use arrays here to pass in so we can loop
+void Tracker::testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz)
+{
+	double outpose[7];
+	connection->GetControllerPose(outpose);
+	//tellin the difference between left and right can be difficult, doesn't quite work when user direction changes
+	//could use direction the user is facing to make this work
+
+
+	//making these relative to hand position made trackers invisible
+	connection->SendTracker(connection->connectedTrackers[1].DriverId, ax + outpose[0], ay + outpose[1], az + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5); //left ankle
+	connection->SendTracker(connection->connectedTrackers[2].DriverId, bx + outpose[0], by + outpose[1], bz + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);  //right ankle
+	//connection->SendTracker(connection->connectedTrackers[0].DriverId, cx, cy, cz, 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);
+	connection->SendTracker(connection->connectedTrackers[0].DriverId, -outpose[0], -outpose[1], -outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);//waist
+	//run the above with x, y, z corrected based on tracking
 }

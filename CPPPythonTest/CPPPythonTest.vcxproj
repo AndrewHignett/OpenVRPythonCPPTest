@@ -115,7 +115,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win64;C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win64\openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win64\openvr_api.lib;D:\opencv-3.4\opencv-3.4\build\lib\Debug\opencv_ts3212d.lib;D:\opencv-3.4\opencv-3.4\build\lib\Release\opencv_world3412.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -159,7 +159,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win64;C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win64\openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Users\Andrew Hignett.ANDREW-PC.001\source\repos\AndrewHignett\OpenVRPythonCPPTest\CPPPythonTest\openvr\lib\win64\openvr_api.lib;D:\opencv-3.4\opencv-3.4\build\lib\Release\opencv_ts3412.lib;D:\opencv-3.4\opencv-3.4\build\lib\Release\opencv_world3412.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

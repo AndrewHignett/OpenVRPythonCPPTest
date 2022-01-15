@@ -4,6 +4,9 @@
 #include "Parameters.h"
 #include "Tracker.h"
 
+#include <vector>
+#include <sstream>
+
 // added openvr_api.dll to debug file path
 
 // Include the Winsock library (lib) file
@@ -116,6 +119,28 @@ void main()
 				break;
 			default:
 				//set capture data to trackers
+				double ax, ay, az, bx, by, bz, cx, cy, cz;
+				//will need to use other coordinates to calibrate, scale and get direction (need to understand quaternions)
+				vector<string> result;
+				stringstream s_stream(buf); //create string stream from the string
+				while (s_stream.good()) {
+					string substr;
+					getline(s_stream, substr, ','); //get first string delimited by comma
+					result.push_back(substr);
+				}
+				for (int i = 0; i < result.size(); i++) {    //print all splitted strings
+					result.at(i);
+				}
+				ax = stod(result.at(0));
+				ay = stod(result.at(1));
+				az = stod(result.at(2));
+				bx = stod(result.at(3));
+				by = stod(result.at(4));
+				bz = stod(result.at(5));
+				cx = stod(result.at(6));
+				cy = stod(result.at(7));
+				cz = stod(result.at(8));
+				tracker->testFunction(ax, ay, az, bx, by, bz, cx, cy, cz);
 				break;
 		}
 	}
