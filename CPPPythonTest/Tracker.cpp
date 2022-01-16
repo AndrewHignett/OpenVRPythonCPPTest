@@ -1232,3 +1232,13 @@ void Tracker::testFunction(double ax, double ay, double az, double bx, double by
 	connection->SendTracker(connection->connectedTrackers[0].DriverId, -outpose[0], -outpose[1], -outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);//waist
 	//run the above with x, y, z corrected based on tracking
 }
+
+void Tracker::calibrate(std::string inputString)
+{
+	//get hmd position
+	double outpose[7];
+	connection->GetHMDPose(outpose);
+	//get some controller positionns too
+	//scale dimensions based on different between these
+	//Probably can figure out how to adjust rotation and centre on the controller
+}

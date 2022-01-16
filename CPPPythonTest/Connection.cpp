@@ -335,3 +335,55 @@ void Connection::GetControllerPose(double outpose[])
 
     outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
 }
+
+void Connection::GetHMDPose(double outpose[])
+{
+
+	std::istringstream ret = Send("getdevicepose 0");
+	std::string word;
+
+	//first three variables are a position vector
+	int idx;
+	double a; double b; double c;
+
+	//second four are rotation quaternion
+	double qw; double qx; double qy; double qz;
+
+	//read to our variables
+	ret >> word; ret >> idx; ret >> a; ret >> b; ret >> c; ret >> qw; ret >> qx; ret >> qy; ret >> qz;
+
+	vr::VRActiveActionSet_t actionSet = { 0 };
+	actionSet.ulActionSet = m_actionsetDemo;
+	vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
+
+	vr::InputPoseActionData_t poseData;
+	if (vr::VRInput()->GetPoseActionDataForNextFrame(m_actionHand, vr::TrackingUniverseRawAndUncalibrated, &poseData, sizeof(poseData), vr::k_ulInvalidInputValueHandle) != vr::VRInputError_None
+		|| !poseData.bActive || !poseData.pose.bPoseIsValid)
+	{
+		return;
+	}
+	else
+	{
+		vr::HmdMatrix34_t matrix = poseData.pose.mDeviceToAbsoluteTracking;
+
+		qw = sqrt(fmax(0, 1 + matrix.m[0][0] + matrix.m[1][1] + matrix.m[2][2])) / 2;
+		qx = sqrt(fmax(0, 1 + matrix.m[0][0] - matrix.m[1][1] - matrix.m[2][2])) / 2;
+		qy = sqrt(fmax(0, 1 - matrix.m[0][0] + matrix.m[1][1] - matrix.m[2][2])) / 2;
+		qz = sqrt(fmax(0, 1 - matrix.m[0][0] - matrix.m[1][1] + matrix.m[2][2])) / 2;
+		qx = copysign(qx, matrix.m[2][1] - matrix.m[1][2]);
+		qy = copysign(qy, matrix.m[0][2] - matrix.m[2][0]);
+		qz = copysign(qz, matrix.m[1][0] - matrix.m[0][1]);
+
+		a = matrix.m[0][3];
+		b = matrix.m[1][3];
+		c = matrix.m[2][3];
+
+	}
+
+	a = -a;
+	c = -c;
+
+	printf("HMD Pose: %d, %d, %d, %d, %d, %d, %d", a, b, c, qw, qx, qy, qz);
+
+	outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
+}

@@ -34,9 +34,17 @@ def sendToServer(thisMessage):
 
 def calibrate():
     pointsString = "+"
-    #for point in calibrationTracking():
-    #    pointsString += point
+    first = True
+    for point in calibrationTracking():
+        for singularPoint in point:
+            if (not first):
+                pointsString += ","
+                pointsString += str(singularPoint)
+            else:
+                pointsString += str(singularPoint)
+                first = False
     #stick UI in python
+    print(pointsString)
     print("big boi calibration\n")
     btnConnect["state"] = "normal"
     btnCalibrate["state"] = "disabled"    
@@ -60,6 +68,7 @@ def addTrackers():
     sendToServer(b'#')
     return 0;
 
+#Need to stay still for this to work
 def calibrationTracking():
     #worth repeating until we get goo points, but that can be set up later
     # For webcam input:
@@ -67,6 +76,9 @@ def calibrationTracking():
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 427)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+    w, h = 3, 9
+    calibrationPointsTracked = [[float(0.0) for x in range(w)] for y in range(h)]
+    i = 0
     with mp_pose.Pose(
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5) as pose:
@@ -89,12 +101,47 @@ def calibrationTracking():
                     results.pose_landmarks.landmark[28],#right ankle
                     results.pose_landmarks.landmark[25],#left knee
                     results.pose_landmarks.landmark[26],#right knee
-                ]         
-                capturedPoints = True
+                    results.pose_landmarks.landmark[17],#left pinky
+                    results.pose_landmarks.landmark[19],#left index
+                    results.pose_landmarks.landmark[18],#right pink
+                    results.pose_landmarks.landmark[20],#right index
+                    results.pose_landmarks.landmark[0] #nose - hmd?
+                ]
+                #need to adjust this based on visibility and capture 5 points when appropraitely visible
+                calibrationPointsTracked[0][0] += results.pose_landmarks.landmark[27].x/5 #left ankle
+                calibrationPointsTracked[0][1] += results.pose_landmarks.landmark[27].y/5#left ankle
+                calibrationPointsTracked[0][2] += results.pose_landmarks.landmark[27].z/5#left ankle
+                calibrationPointsTracked[1][0] += results.pose_landmarks.landmark[28].x/5#right ankle
+                calibrationPointsTracked[1][1] += results.pose_landmarks.landmark[28].y/5#right ankle
+                calibrationPointsTracked[1][2] += results.pose_landmarks.landmark[28].z/5#right ankle
+                calibrationPointsTracked[2][0] += results.pose_landmarks.landmark[25].x/5#left knee
+                calibrationPointsTracked[2][1] += results.pose_landmarks.landmark[25].y/5#left knee
+                calibrationPointsTracked[2][2] += results.pose_landmarks.landmark[25].z/5#left knee
+                calibrationPointsTracked[3][0] += results.pose_landmarks.landmark[26].x/5#right knee
+                calibrationPointsTracked[3][1] += results.pose_landmarks.landmark[26].y/5#right knee
+                calibrationPointsTracked[3][2] += results.pose_landmarks.landmark[26].z/5#right knee
+                calibrationPointsTracked[4][0] += results.pose_landmarks.landmark[17].x/5#left pinky
+                calibrationPointsTracked[4][1] += results.pose_landmarks.landmark[17].y/5#left pinky
+                calibrationPointsTracked[4][2] += results.pose_landmarks.landmark[17].z/5#left pinky
+                calibrationPointsTracked[5][0] += results.pose_landmarks.landmark[19].x/5#left index
+                calibrationPointsTracked[5][1] += results.pose_landmarks.landmark[19].y/5#left index
+                calibrationPointsTracked[5][2] += results.pose_landmarks.landmark[19].z/5#left index
+                calibrationPointsTracked[6][0] += results.pose_landmarks.landmark[18].x/5#right pink
+                calibrationPointsTracked[6][1] += results.pose_landmarks.landmark[18].y/5#right pink
+                calibrationPointsTracked[6][2] += results.pose_landmarks.landmark[18].z/5#right pink
+                calibrationPointsTracked[7][0] += results.pose_landmarks.landmark[20].x/5#right index
+                calibrationPointsTracked[7][1] += results.pose_landmarks.landmark[20].y/5#right index
+                calibrationPointsTracked[7][2] += results.pose_landmarks.landmark[20].z/5#right index
+                calibrationPointsTracked[8][0] += results.pose_landmarks.landmark[0].x/5 #nose - hmd?
+                calibrationPointsTracked[8][1] += results.pose_landmarks.landmark[0].y/5 #nose - hmd?
+                calibrationPointsTracked[8][2] += results.pose_landmarks.landmark[0].z/5 #nose - hmd?
+                i += 1
+                if (i == 5):
+                    capturedPoints = True
             if (cv2.waitKey(5) & 0xFF == 27)or(capturedPoints):
                 break
     cap.release()
-    return calibrationPoints
+    return calibrationPointsTracked
 
 def tracking():
     #This is not threaded, so the UI will freeze on this

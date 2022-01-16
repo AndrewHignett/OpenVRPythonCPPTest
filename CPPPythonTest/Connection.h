@@ -38,6 +38,7 @@ public:
 	std::istringstream SendTracker(int id, double a, double b, double c, double qw, double qx, double qy, double qz, double time, double smoothing);
 	std::istringstream SendStation(int id, double a, double b, double c, double qw, double qx, double qy, double qz);
 	void GetControllerPose(double outpose[]);
+	void GetHMDPose(double outpose[]);
 	int GetButtonStates();
 	int status = DISCONNECTED;
 	vr::IVRSystem* openvr_handle;

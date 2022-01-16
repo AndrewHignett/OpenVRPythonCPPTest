@@ -108,6 +108,7 @@ void main()
 			//these must be done in this order
 			case '+':
 				//calibrate
+				tracker->calibrate(buf);
 				break;
 			case '%':
 				//connect

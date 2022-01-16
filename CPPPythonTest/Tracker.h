@@ -54,6 +54,7 @@ public:
     double calibScale = 1;
 
 	void testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz);
+	void calibrate(std::string inputString);
 
 private:
     void CameraLoop();
