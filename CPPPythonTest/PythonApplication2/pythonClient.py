@@ -76,7 +76,7 @@ def calibrationTracking():
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 427)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-    w, h = 3, 9
+    w, h = 3, 7
     calibrationPointsTracked = [[float(0.0) for x in range(w)] for y in range(h)]
     i = 0
     with mp_pose.Pose(
@@ -120,21 +120,21 @@ def calibrationTracking():
                 calibrationPointsTracked[3][0] += results.pose_landmarks.landmark[26].x/5#right knee
                 calibrationPointsTracked[3][1] += results.pose_landmarks.landmark[26].y/5#right knee
                 calibrationPointsTracked[3][2] += results.pose_landmarks.landmark[26].z/5#right knee
-                calibrationPointsTracked[4][0] += results.pose_landmarks.landmark[17].x/5#left pinky
-                calibrationPointsTracked[4][1] += results.pose_landmarks.landmark[17].y/5#left pinky
-                calibrationPointsTracked[4][2] += results.pose_landmarks.landmark[17].z/5#left pinky
-                calibrationPointsTracked[5][0] += results.pose_landmarks.landmark[19].x/5#left index
-                calibrationPointsTracked[5][1] += results.pose_landmarks.landmark[19].y/5#left index
-                calibrationPointsTracked[5][2] += results.pose_landmarks.landmark[19].z/5#left index
-                calibrationPointsTracked[6][0] += results.pose_landmarks.landmark[18].x/5#right pink
-                calibrationPointsTracked[6][1] += results.pose_landmarks.landmark[18].y/5#right pink
-                calibrationPointsTracked[6][2] += results.pose_landmarks.landmark[18].z/5#right pink
-                calibrationPointsTracked[7][0] += results.pose_landmarks.landmark[20].x/5#right index
-                calibrationPointsTracked[7][1] += results.pose_landmarks.landmark[20].y/5#right index
-                calibrationPointsTracked[7][2] += results.pose_landmarks.landmark[20].z/5#right index
-                calibrationPointsTracked[8][0] += results.pose_landmarks.landmark[0].x/5 #nose - hmd?
-                calibrationPointsTracked[8][1] += results.pose_landmarks.landmark[0].y/5 #nose - hmd?
-                calibrationPointsTracked[8][2] += results.pose_landmarks.landmark[0].z/5 #nose - hmd?
+                calibrationPointsTracked[4][0] += results.pose_landmarks.landmark[17].x/10 + results.pose_landmarks.landmark[19].x/10#left pinky
+                calibrationPointsTracked[4][1] += results.pose_landmarks.landmark[17].y/10 + results.pose_landmarks.landmark[19].y/10#left pinky
+                calibrationPointsTracked[4][2] += results.pose_landmarks.landmark[17].z/10 + results.pose_landmarks.landmark[19].z/10#left pinky
+                #calibrationPointsTracked[5][0] += #left index
+                #calibrationPointsTracked[5][1] += #left index
+                #calibrationPointsTracked[5][2] += #left index
+                calibrationPointsTracked[5][0] += results.pose_landmarks.landmark[18].x/10 + results.pose_landmarks.landmark[20].x/10#right pink
+                calibrationPointsTracked[5][1] += results.pose_landmarks.landmark[18].y/10 + results.pose_landmarks.landmark[20].y/10#right pink
+                calibrationPointsTracked[5][2] += results.pose_landmarks.landmark[18].z/10 + results.pose_landmarks.landmark[20].z/10#right pink
+                #calibrationPointsTracked[7][0] += #right index
+                #calibrationPointsTracked[7][1] += #right index
+                #calibrationPointsTracked[7][2] += #right index
+                calibrationPointsTracked[6][0] += results.pose_landmarks.landmark[0].x/5 #nose - hmd?
+                calibrationPointsTracked[6][1] += results.pose_landmarks.landmark[0].y/5 #nose - hmd?
+                calibrationPointsTracked[6][2] += results.pose_landmarks.landmark[0].z/5 #nose - hmd?
                 i += 1
                 if (i == 5):
                     capturedPoints = True

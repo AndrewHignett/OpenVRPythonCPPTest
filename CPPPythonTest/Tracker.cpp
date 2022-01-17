@@ -17,6 +17,7 @@
 //#include <opencv2/aruco/charuco.hpp>
 #include <thread>
 
+
 //#include "AprilTagWrapper.h"
 #include "Connection.h"
 //#include "GUI.h"
@@ -1236,9 +1237,61 @@ void Tracker::testFunction(double ax, double ay, double az, double bx, double by
 void Tracker::calibrate(std::string inputString)
 {
 	//get hmd position
-	double outpose[7];
-	connection->GetHMDPose(outpose);
+	double headPose[7];
+	double leftHandPose[7];
+	double rightHandPose[7];
+
+	connection->GetHMDPose(headPose);
+	connection->GetControllerPose(leftHandPose);
+	//need to pick which hand I'm gettin the controller pose from
+	//connection->GetHMDPose(headPose);
+
 	//get some controller positionns too
+	std::vector<std::string> result;
+	std::stringstream s_stream(inputString); //create string stream from the string
+	while (s_stream.good()) {
+		std::string substr;
+		getline(s_stream, substr, ','); //get first string delimited by comma
+		result.push_back(substr);
+	}
+	double leftHand[3] = { stod(result.at(12)), stod(result.at(13)), stod(result.at(14)) };
+	double rightHand[3] = { stod(result.at(15)), stod(result.at(16)), stod(result.at(17)) };
+	double head[3] = { stod(result.at(18)), stod(result.at(19)), stod(result.at(20)) };
+	double leftAnkle[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	double rightAnkle[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	double leftKnee[3] = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
+	double rightKnee[3] = { stod(result.at(9)), stod(result.at(10)), stod(result.at(11)) };
+	//get vector of vertical direction by taking knees and ankles and averaging vertical vector here
+	double verticalVector[3] = { (leftKnee[0] - leftAnkle[0] + rightKnee[0] - rightKnee[0]) / 2,
+								(leftKnee[1] - leftAnkle[1] + rightKnee[1] - rightKnee[1]) / 2,
+								(leftKnee[2] - leftAnkle[2] + rightKnee[2] - rightKnee[2]) / 2 };
+	//in order to calibrate I'll need to know is this vector and then rotate such that this is vertical
+	//then I'll need to rotate such that this is now vertical and then reverse this process to rotate our point systems - quaternions good here
+	//x = RotationAxis.x * sin(RotationAngle / 2)
+	//y = RotationAxis.y * sin(RotationAngle / 2)
+	//z = RotationAxis.z * sin(RotationAngle / 2)
+	//w = cos(RotationAngle / 2)
+	//Quaternion<double> q; //rodr2quat(trackerStatus[i].boardRvec[0], trackerStatus[i].boardRvec[1], trackerStatus[i].boardRvec[2]);
+	//q = Quaternion<double>(0, 0, 1, 0) * (wrotation * q) * Quaternion<double>(0, 0, 1, 0);
+	/*
+	magnitude = sqrt(w2 + x2 + y2 + z2)
+	w = w / magnitude
+	x = x / magnitude
+	y = y / magnitude
+	z = z / magnitude
+
+	Will need to multiply quaternions xRot * yRot * zRot
+	Can work out what these should be based on what the angle between the vector and each axis would be
+	*/
+	//Use magnitudes of the below in steamvr and mediapose to deal with what to multiple point locations by
+	//Need to deal with visibilty and only deal with those, then average them for magnitude
+	//magnitude of vector from left hand to head
+	double magLH = sqrt(pow(leftHand[0] - head[0], 2.0) + pow(leftHand[1] - head[1], 2.0) + pow(leftHand[2] - head[2], 2.0));
+	//magnitude of vector from left hand to right hand
+	double magLR = sqrt(pow(leftHand[0] - rightHand[0], 2.0) + pow(leftHand[1] - rightHand[1], 2.0) + pow(leftHand[2] - rightHand[2], 2.0));
+	//magnitude of vector from right hand to head
+	double magRH = sqrt(pow(rightHand[0] - head[0], 2.0) + pow(rightHand[1] - head[1], 2.0) + pow(rightHand[2] - head[2], 2.0));
+	double magnitude = (magLH + magLR + magRH) / 3;
 	//scale dimensions based on different between these
 	//Probably can figure out how to adjust rotation and centre on the controller
 }

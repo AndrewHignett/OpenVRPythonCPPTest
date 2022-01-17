@@ -13,6 +13,7 @@
 //#include "MyApp.h"
 
 #include "Quaternion.h"
+#include <math.h>
 
 
 struct TrackerStatus {
