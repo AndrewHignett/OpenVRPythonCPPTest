@@ -78,7 +78,6 @@ void main()
 	Connection *con = new Connection(params);
 	Tracker *tracker = new Tracker(params, con);
 
-
 	// Enter a loop
 	while (true)
 	{

@@ -1,5 +1,4 @@
 #include "Connection.h"
-//#define LPCWSTR lpszPipename = TEXT("\\\\.\\pipe\\ApriltagPipeIn");
 
 Connection::Connection(Parameters* params)
 {

@@ -16,6 +16,8 @@
 //#include <opencv2/aruco.hpp>
 //#include <opencv2/aruco/charuco.hpp>
 #include <thread>
+//#include <cmath>
+#include <numeric>
 
 
 //#include "AprilTagWrapper.h"
@@ -1262,7 +1264,7 @@ void Tracker::calibrate(std::string inputString)
 	double leftKnee[3] = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
 	double rightKnee[3] = { stod(result.at(9)), stod(result.at(10)), stod(result.at(11)) };
 	//get vector of vertical direction by taking knees and ankles and averaging vertical vector here
-	double verticalVector[3] = { (leftKnee[0] - leftAnkle[0] + rightKnee[0] - rightKnee[0]) / 2,
+	std::vector<double> vertical = { (leftKnee[0] - leftAnkle[0] + rightKnee[0] - rightKnee[0]) / 2,
 								(leftKnee[1] - leftAnkle[1] + rightKnee[1] - rightKnee[1]) / 2,
 								(leftKnee[2] - leftAnkle[2] + rightKnee[2] - rightKnee[2]) / 2 };
 	//in order to calibrate I'll need to know is this vector and then rotate such that this is vertical
@@ -1283,6 +1285,22 @@ void Tracker::calibrate(std::string inputString)
 	Will need to multiply quaternions xRot * yRot * zRot
 	Can work out what these should be based on what the angle between the vector and each axis would be
 	*/
+	
+	//get angle between vector and axes
+	std::vector<double> x, y, z;
+	x = { 1, 0, 0 };//mag is 1
+	y = { 0, 1, 0 };//mag is 1
+	z = { 0, 0, 1 };//mag is 1
+	//angle between
+	double angleX = acos(std::inner_product(vertical.begin(), vertical.end(), x.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
+	double angleY = acos(std::inner_product(vertical.begin(), vertical.end(), y.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
+	double angleZ = acos(std::inner_product(vertical.begin(), vertical.end(), z.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
+	printf("%f %f %f\n", angleX, angleY, angleZ);
+	//The above may not be totally necessary, we want to find the rotation matrix to map a vector to another vector:
+	//https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+
+	//Quaternion<double> 
+
 	//Use magnitudes of the below in steamvr and mediapose to deal with what to multiple point locations by
 	//Need to deal with visibilty and only deal with those, then average them for magnitude
 	//magnitude of vector from left hand to head
