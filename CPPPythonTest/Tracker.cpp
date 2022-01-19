@@ -1236,6 +1236,29 @@ void Tracker::testFunction(double ax, double ay, double az, double bx, double by
 	//run the above with x, y, z corrected based on tracking
 }
 
+void crossProduct(std::vector<double> z, std::vector<double> y, std::vector<double> xOut) {
+	xOut[0] = z[1] * y[2] - z[2] * y[1];
+	xOut[1] = -(z[0] * y[2] - z[2] * y[0]);
+	xOut[2] = z[0] * y[1] - z[1] * y[0];
+}
+
+void rotatePoints(std::vector<double> point, std::vector<double> x, std::vector<double> y, std::vector<double> z)
+{
+	//https://stackoverflow.com/questions/29754538/rotate-object-from-one-coordinate-system-to-another
+	//point[0]*(x[0] + y[0] + z[0]), point[0]*()
+
+	//changing basis in 3d should be easy
+	/*
+	Consider this:
+	point{x, y, z} is our point
+	point.x * xVector + point.y * yVector +	point.z * zVector 
+	^This is not valid - https://math.stackexchange.com/questions/1346802/how-to-change-of-basis-from-3-points
+
+	need to find how to move a point to a new axis/coordinate system
+	https://math.stackexchange.com/questions/542801/rotate-3d-coordinate-system-such-that-z-axis-is-parallel-to-a-given-vector
+	*/
+}
+
 void Tracker::calibrate(std::string inputString)
 {
 	//get hmd position
@@ -1264,9 +1287,12 @@ void Tracker::calibrate(std::string inputString)
 	double leftKnee[3] = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
 	double rightKnee[3] = { stod(result.at(9)), stod(result.at(10)), stod(result.at(11)) };
 	//get vector of vertical direction by taking knees and ankles and averaging vertical vector here
-	std::vector<double> vertical = { (leftKnee[0] - leftAnkle[0] + rightKnee[0] - rightKnee[0]) / 2,
-								(leftKnee[1] - leftAnkle[1] + rightKnee[1] - rightKnee[1]) / 2,
-								(leftKnee[2] - leftAnkle[2] + rightKnee[2] - rightKnee[2]) / 2 };
+	std::vector<double> zLocal = { (leftKnee[0] - leftAnkle[0] + rightKnee[0] - rightAnkle[0]) / 2,
+								(leftKnee[1] - leftAnkle[1] + rightKnee[1] - rightAnkle[1]) / 2,
+								(leftKnee[2] - leftAnkle[2] + rightKnee[2] - rightAnkle[2]) / 2 };
+	std::vector<double> yLocal = { (leftKnee[0] - rightKnee[0] + leftAnkle[0] - rightAnkle[0]) / 2,
+								(leftKnee[1] - rightKnee[1] + leftAnkle[1] - rightAnkle[1]) / 2,
+								(leftKnee[2] - rightKnee[2] + leftAnkle[2] - rightAnkle[2]) / 2 };
 	//in order to calibrate I'll need to know is this vector and then rotate such that this is vertical
 	//then I'll need to rotate such that this is now vertical and then reverse this process to rotate our point systems - quaternions good here
 	//x = RotationAxis.x * sin(RotationAngle / 2)
@@ -1292,14 +1318,24 @@ void Tracker::calibrate(std::string inputString)
 	y = { 0, 1, 0 };//mag is 1
 	z = { 0, 0, 1 };//mag is 1
 	//angle between
-	double angleX = acos(std::inner_product(vertical.begin(), vertical.end(), x.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
-	double angleY = acos(std::inner_product(vertical.begin(), vertical.end(), y.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
-	double angleZ = acos(std::inner_product(vertical.begin(), vertical.end(), z.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
-	printf("%f %f %f\n", angleX, angleY, angleZ);
+	//double angleX = acos(std::inner_product(vertical.begin(), vertical.end(), x.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
+	//double angleY = acos(std::inner_product(vertical.begin(), vertical.end(), y.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
+	//double angleZ = acos(std::inner_product(vertical.begin(), vertical.end(), z.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
+	//printf("%f %f %f\n", angleX, angleY, angleZ);
 	//The above may not be totally necessary, we want to find the rotation matrix to map a vector to another vector:
 	//https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+	std::vector<double> xLocal = {0, 0, 0};
+	crossProduct(zLocal, yLocal, xLocal);
+
 
 	//Quaternion<double> 
+	//We need a coordinate system:
+	//find Y vector by using the average of vectors between ankles and between knees
+	//find X vector by getting the cross product of the Y and Z vectors
+	//Then I think it'd be a matter of multiplying by the inverse of:
+	//M*{{x.x, x.y, x.z}, {y.x, y.y, y.z}, {z.x, z.y, z.z}} = new coordinate in new 3D space (which should be consistent with steamVR
+	//the above should be normalised, although realistically should scale based on the scale needed
+
 
 	//Use magnitudes of the below in steamvr and mediapose to deal with what to multiple point locations by
 	//Need to deal with visibilty and only deal with those, then average them for magnitude
