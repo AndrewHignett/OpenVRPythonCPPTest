@@ -1327,6 +1327,23 @@ void Tracker::calibrate(std::string inputString)
 	std::vector<double> xLocal = {0, 0, 0};
 	crossProduct(zLocal, yLocal, xLocal);
 
+	/*
+	THIS DOES NOT WORK
+	pooints can be transalated so relative to hand in both steamvr and real local space
+	we know which way is up
+	how can I map these coordinate spaces? If I dont know x and y directions in local space
+	yLocal does not work, since this would only be valid when standing in certain positions
+	In theory, I should have the controllers and hmd locations in both spaces, this should be enough to fix the axis
+	Distance between the points should scale nicely
+	Find angle between axis and the vectors between hmd and controller locations, about certain axis - could be useful
+	I have three points I can map to a new space? This might be enough to go off and solve for?
+	Its important to note these points must be moved after being transformed, to make it relative to steamvr
+	https ://math.stackexchange.com/questions/2059833/coordinate-transformation-based-on-three-points
+	Affine mapping needs 4 points - I dont have four points, I could move controllers, this is only fine if I input relative to a controller, then capture several points of the
+	other controller
+	From here, it should be possible to define an affine mapping from one system to the other
+	As a result of this, the zDirection mess should be unncessesary - just need some conntroller points to be captured - so, double calibration
+	*/
 
 	//Quaternion<double> 
 	//We need a coordinate system:
