@@ -1259,6 +1259,31 @@ void rotatePoints(std::vector<double> point, std::vector<double> x, std::vector<
 	*/
 }
 
+void Tracker::MapPoint(double point[3], double out[3])
+{
+	calibration[0][3] = point[0];
+	calibration[0][4] = point[1];
+	calibration[0][5] = point[2];
+
+	//-1*(det calibration/ det calibrationDenom)
+}
+
+double det(double A[4][4])
+{
+	double c, r = 1;
+	for (int i = 0; i < 4; i++) {
+		for (int k = i + 1; k < 4; k++) {
+			c = A[k][i] / A[i][i];
+			for (int j = i; j < 4; j++)
+				A[k][j] = A[k][j] - c * A[i][j];
+		}
+	}
+	for (int i = 0; i < 4; i++)
+		r *= A[i][i];
+	return r;
+}
+
+
 void Tracker::calibrate(std::string inputString)
 {
 	//get hmd position
@@ -1279,6 +1304,7 @@ void Tracker::calibrate(std::string inputString)
 		getline(s_stream, substr, ','); //get first string delimited by comma
 		result.push_back(substr);
 	}
+	/*
 	double leftHand[3] = { stod(result.at(12)), stod(result.at(13)), stod(result.at(14)) };
 	double rightHand[3] = { stod(result.at(15)), stod(result.at(16)), stod(result.at(17)) };
 	double head[3] = { stod(result.at(18)), stod(result.at(19)), stod(result.at(20)) };
@@ -1293,6 +1319,10 @@ void Tracker::calibrate(std::string inputString)
 	std::vector<double> yLocal = { (leftKnee[0] - rightKnee[0] + leftAnkle[0] - rightAnkle[0]) / 2,
 								(leftKnee[1] - rightKnee[1] + leftAnkle[1] - rightAnkle[1]) / 2,
 								(leftKnee[2] - rightKnee[2] + leftAnkle[2] - rightAnkle[2]) / 2 };
+	*/
+	double leftHand[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	double rightHand[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	double head[3] = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
 	//in order to calibrate I'll need to know is this vector and then rotate such that this is vertical
 	//then I'll need to rotate such that this is now vertical and then reverse this process to rotate our point systems - quaternions good here
 	//x = RotationAxis.x * sin(RotationAngle / 2)
@@ -1344,6 +1374,38 @@ void Tracker::calibrate(std::string inputString)
 	From here, it should be possible to define an affine mapping from one system to the other
 	As a result of this, the zDirection mess should be unncessesary - just need some conntroller points to be captured - so, double calibration
 	*/
+	
+	calibration[3][0] = 1;
+	point3 = inputPoint3;
+	calibration[3][1] = point3t[0];
+	calibration[3][2] = point3t[1];
+	calibration[3][3] = point3t[2];
+	calibration[4][0] = 1;
+	point4 = inputPoint4;
+	calibration[4][1] = point4t[0];
+	calibration[4][2] = point4t[1];
+	calibration[4][3] = point4t[2];
+
+	double calibrationDenom[4][4];
+	calibrationDenom[0][0] = calibration[1][1];
+	calibrationDenom[0][1] = calibration[1][2];
+	calibrationDenom[0][2] = calibration[1][3];
+	calibrationDenom[0][3] = 1;
+	calibrationDenom[1][0] = calibration[2][1];
+	calibrationDenom[1][1] = calibration[2][2];
+	calibrationDenom[1][2] = calibration[2][3];
+	calibrationDenom[1][3] = 1;
+	calibrationDenom[2][0] = point3t[0];
+	calibrationDenom[2][1] = point3t[1];
+	calibrationDenom[2][2] = point3t[2];
+	calibrationDenom[2][3] = 1;
+	calibrationDenom[3][0] = point4t[0];
+	calibrationDenom[3][1] = point4t[1];
+	calibrationDenom[3][2] = point4t[2];
+	calibrationDenom[3][3] = 1;
+	//Above is a fixed determinant, regardless of input points, calculate and store this
+	calibrationDenomDet = det(calibrationDenom);
+
 
 	//Quaternion<double> 
 	//We need a coordinate system:
@@ -1365,4 +1427,33 @@ void Tracker::calibrate(std::string inputString)
 	double magnitude = (magLH + magLR + magRH) / 3;
 	//scale dimensions based on different between these
 	//Probably can figure out how to adjust rotation and centre on the controller
+}
+
+void Tracker::initialCalibration(std::string inputString)
+{
+	//3D transformations
+	//Mapping a point
+	//break up input string, store here
+	point1
+	point2
+	//store point1 and point 2 (hmd/right controller) from python side, then point1t/point2t	
+
+	calibration[0][0] = 0;
+	calibration[0][1] = 0;
+	calibration[0][2] = 0;
+	calibration[0][3] = 0;
+	calibration[0][4] = 1;
+	calibration[1][4] = 1;
+	calibration[2][4] = 1;
+	calibration[3][4] = 1;
+	calibration[4][4] = 1;
+	calibration[1][0] = 1;
+	calibration[1][1] = point1t[0];
+	calibration[1][2] = point1t[1];
+	calibration[1][3] = point1t[2];
+	calibration[2][0] = 1;
+	calibration[2][1] = point2t[0];
+	calibration[2][2] = point2t[1];
+	calibration[2][3] = point2t[2];	
+	
 }

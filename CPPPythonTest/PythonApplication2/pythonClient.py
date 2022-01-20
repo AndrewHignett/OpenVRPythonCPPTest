@@ -10,6 +10,7 @@ import time
 import socket
 
 port = 8888
+firstCall = True;
 
 #for pings in range(10000):
     #client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -43,11 +44,18 @@ def calibrate():
             else:
                 pointsString += str(singularPoint)
                 first = False
+
     #stick UI in python
     print(pointsString)
     print("big boi calibration\n")
-    btnConnect["state"] = "normal"
-    btnCalibrate["state"] = "disabled"    
+    
+    
+    if (firstCall):
+        btnCalibrate2["state"] = "normal"    
+        btnCalibrate["state"] = "disabled"    
+    else:
+        btnConnect["state"] = "normal"
+        btnCalibrate2["state"] = "disabled"
     #will need to send points to C++, from there calibration can be determined
     #sendToServer(b'+')
     sendToServer(str.encode(pointsString))
@@ -76,7 +84,7 @@ def calibrationTracking():
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 427)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-    w, h = 3, 7
+    w, h = 3, w#7
     calibrationPointsTracked = [[float(0.0) for x in range(w)] for y in range(h)]
     i = 0
     with mp_pose.Pose(
@@ -96,48 +104,29 @@ def calibrationTracking():
             results = pose.process(image)
 
             if (results.pose_landmarks is not None):
-                calibrationPoints = [
-                    results.pose_landmarks.landmark[27],#left ankle
-                    results.pose_landmarks.landmark[28],#right ankle
-                    results.pose_landmarks.landmark[25],#left knee
-                    results.pose_landmarks.landmark[26],#right knee
-                    results.pose_landmarks.landmark[17],#left pinky
-                    results.pose_landmarks.landmark[19],#left index
-                    results.pose_landmarks.landmark[18],#right pink
-                    results.pose_landmarks.landmark[20],#right index
-                    results.pose_landmarks.landmark[0] #nose - hmd?
-                ]
                 #need to adjust this based on visibility and capture 5 points when appropraitely visible
-                calibrationPointsTracked[0][0] += results.pose_landmarks.landmark[27].x/5 #left ankle
-                calibrationPointsTracked[0][1] += results.pose_landmarks.landmark[27].y/5#left ankle
-                calibrationPointsTracked[0][2] += results.pose_landmarks.landmark[27].z/5#left ankle
-                calibrationPointsTracked[1][0] += results.pose_landmarks.landmark[28].x/5#right ankle
-                calibrationPointsTracked[1][1] += results.pose_landmarks.landmark[28].y/5#right ankle
-                calibrationPointsTracked[1][2] += results.pose_landmarks.landmark[28].z/5#right ankle
-                calibrationPointsTracked[2][0] += results.pose_landmarks.landmark[25].x/5#left knee
-                calibrationPointsTracked[2][1] += results.pose_landmarks.landmark[25].y/5#left knee
-                calibrationPointsTracked[2][2] += results.pose_landmarks.landmark[25].z/5#left knee
-                calibrationPointsTracked[3][0] += results.pose_landmarks.landmark[26].x/5#right knee
-                calibrationPointsTracked[3][1] += results.pose_landmarks.landmark[26].y/5#right knee
-                calibrationPointsTracked[3][2] += results.pose_landmarks.landmark[26].z/5#right knee
-                calibrationPointsTracked[4][0] += results.pose_landmarks.landmark[17].x/10 + results.pose_landmarks.landmark[19].x/10#left pinky
-                calibrationPointsTracked[4][1] += results.pose_landmarks.landmark[17].y/10 + results.pose_landmarks.landmark[19].y/10#left pinky
-                calibrationPointsTracked[4][2] += results.pose_landmarks.landmark[17].z/10 + results.pose_landmarks.landmark[19].z/10#left pinky
-                #calibrationPointsTracked[5][0] += #left index
-                #calibrationPointsTracked[5][1] += #left index
-                #calibrationPointsTracked[5][2] += #left index
-                calibrationPointsTracked[5][0] += results.pose_landmarks.landmark[18].x/10 + results.pose_landmarks.landmark[20].x/10#right pink
-                calibrationPointsTracked[5][1] += results.pose_landmarks.landmark[18].y/10 + results.pose_landmarks.landmark[20].y/10#right pink
-                calibrationPointsTracked[5][2] += results.pose_landmarks.landmark[18].z/10 + results.pose_landmarks.landmark[20].z/10#right pink
-                #calibrationPointsTracked[7][0] += #right index
-                #calibrationPointsTracked[7][1] += #right index
-                #calibrationPointsTracked[7][2] += #right index
-                calibrationPointsTracked[6][0] += results.pose_landmarks.landmark[0].x/5 #nose - hmd?
-                calibrationPointsTracked[6][1] += results.pose_landmarks.landmark[0].y/5 #nose - hmd?
-                calibrationPointsTracked[6][2] += results.pose_landmarks.landmark[0].z/5 #nose - hmd?
+                calibrationPointsTracked[0][0] += results.pose_landmarks.landmark[17].x/10 + results.pose_landmarks.landmark[19].x/10#left controller
+                calibrationPointsTracked[0][1] += results.pose_landmarks.landmark[17].y/10 + results.pose_landmarks.landmark[19].y/10#left controller
+                calibrationPointsTracked[0][2] += results.pose_landmarks.landmark[17].z/10 + results.pose_landmarks.landmark[19].z/10#left controller
+                calibrationPointsTracked[1][0] += results.pose_landmarks.landmark[18].x/10 + results.pose_landmarks.landmark[20].x/10#right controller
+                calibrationPointsTracked[1][1] += results.pose_landmarks.landmark[18].y/10 + results.pose_landmarks.landmark[20].y/10#right controller
+                calibrationPointsTracked[1][2] += results.pose_landmarks.landmark[18].z/10 + results.pose_landmarks.landmark[20].z/10#right controller
+                calibrationPointsTracked[2][0] += results.pose_landmarks.landmark[0].x/5 #nose - hmd?
+                calibrationPointsTracked[2][1] += results.pose_landmarks.landmark[0].y/5 #nose - hmd?
+                calibrationPointsTracked[2][2] += results.pose_landmarks.landmark[0].z/5 #nose - hmd?    
                 i += 1
                 if (i == 5):
                     capturedPoints = True
+            #treat left controller as (0,0,0)
+            calibrationPointsTracked[1][0] -= calibrationPointsTracked[0][0]
+            calibrationPointsTracked[1][1] -= calibrationPointsTracked[0][1]
+            calibrationPointsTracked[1][2] -= calibrationPointsTracked[0][2]
+            calibrationPointsTracked[2][0] -= calibrationPointsTracked[0][0]
+            calibrationPointsTracked[2][1] -= calibrationPointsTracked[0][1]
+            calibrationPointsTracked[2][2] -= calibrationPointsTracked[0][2]
+            calibrationPointsTracked[0][0] = 0
+            calibrationPointsTracked[0][1] = 0
+            calibrationPointsTracked[0][2] = 0
             if (cv2.waitKey(5) & 0xFF == 27)or(capturedPoints):
                 break
     cap.release()
@@ -310,21 +299,23 @@ or even slow stuff - could average frames (introduces visible latency)
 -button to rotate camera
 '''
 
-
 top = tkinter.Tk()
 
 top.geometry("512x512")
 
 btnCalibrate = tkinter.Button(top, text ="Calibrate", command = calibrate)
+btnCalibrate2 = tkinter.Button(top, text ="Calibrate2", command = calibrate)
 btnConnect = tkinter.Button(top, text ="Connect", command = connect)
 btnAddTrackers = tkinter.Button(top, text ="Add Trackers", command = addTrackers)
 btnTracking = tkinter.Button(top, text ="Start Tracking", command = tracking)
 
+btnCalibrate2["state"] = "disabled"
 btnConnect["state"] = "disabled"
 btnAddTrackers["state"] = "disabled"
 btnTracking["state"] = "disabled"
 
 btnCalibrate.pack()
+btnCalibrate2.pack()
 btnConnect.pack()
 btnAddTrackers.pack()
 btnTracking.pack()

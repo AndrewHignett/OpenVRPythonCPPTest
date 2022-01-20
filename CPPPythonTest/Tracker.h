@@ -47,15 +47,20 @@ public:
     bool lockHeightCalib = false;
     bool disableOut = false;
 
+
     //GUI* gui;
 
 	//cv::Mat wtranslation = (cv::Mat_<double>(4, 4) << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     Quaternion<double> wrotation = Quaternion<double>(1, 0, 0, 0);
 
     double calibScale = 1;
+	double calibration[5][5];
+	std::vector<std::vector<double>> point1, point2, point3, point4;
+	double calibrationDenomDet;
 
 	void testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz);
 	void calibrate(std::string inputString);
+	void initialCalibration(std::string inputString);
 
 private:
     void CameraLoop();
@@ -64,6 +69,8 @@ private:
     void CalibrateCameraCharuco();
     void CalibrateTracker();
     void MainLoop();
+	void MapPoint(double inputPoint[3], double out[3]);
+
 
     int drawImgSize = 480;
 

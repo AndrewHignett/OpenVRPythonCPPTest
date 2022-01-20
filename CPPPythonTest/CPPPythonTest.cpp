@@ -78,6 +78,8 @@ void main()
 	Connection *con = new Connection(params);
 	Tracker *tracker = new Tracker(params, con);
 
+	bool firstCalibration = true;
+
 	// Enter a loop
 	while (true)
 	{
@@ -107,7 +109,14 @@ void main()
 			//these must be done in this order
 			case '+':
 				//calibrate
-				tracker->calibrate(buf);
+				if (firstCalibration) {
+					//store the necessary points so these and the next buff can be fed into the tracker
+					//or could just store these as part of the tracker, as intended
+					tracker->initialCalibration(buf);
+				}
+				else {
+					tracker->calibrate(buf);
+				}				
 				break;
 			case '%':
 				//connect
