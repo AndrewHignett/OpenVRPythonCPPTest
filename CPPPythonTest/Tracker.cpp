@@ -1261,11 +1261,38 @@ void rotatePoints(std::vector<double> point, std::vector<double> x, std::vector<
 
 void Tracker::MapPoint(double point[3], double out[3])
 {
-	calibration[0][3] = point[0];
-	calibration[0][4] = point[1];
-	calibration[0][5] = point[2];
+	calibration[0][1] = point[0];
+	calibration[0][2] = point[1];
+	calibration[0][3] = point[2];
 
 	//-1*(det calibration/ det calibrationDenom)
+	double aPoint[4][4] = { {calibration[0][1], calibration[2][1], calibration[3][1], calibration[4][1]},
+							{calibration[0][2], calibration[2][2], calibration[3][2], calibration[4][2]},
+							{calibration[0][3], calibration[2][3], calibration[3][3], calibration[4][3]},
+							{calibration[0][4], calibration[2][4], calibration[3][4], calibration[4][4]} };
+	double bPoint[4][4] = { {calibration[0][1], calibration[1][1], calibration[3][1], calibration[4][1]},
+							{calibration[0][2], calibration[1][2], calibration[3][2], calibration[4][2]},
+							{calibration[0][3], calibration[1][3], calibration[3][3], calibration[4][3]},
+							{calibration[0][4], calibration[1][4], calibration[3][4], calibration[4][4]} };
+	double cPoint[4][4] = { {calibration[0][1], calibration[1][1], calibration[2][1], calibration[4][1]},
+							{calibration[0][2], calibration[1][2], calibration[2][2], calibration[4][2]},
+							{calibration[0][3], calibration[1][3], calibration[2][3], calibration[4][3]},
+							{calibration[0][4], calibration[1][4], calibration[2][4], calibration[4][4]} };
+	double dPoint[4][4] = { {calibration[0][1], calibration[1][1], calibration[2][1], calibration[3][1]},
+							{calibration[0][2], calibration[1][2], calibration[2][2], calibration[3][2]},
+							{calibration[0][3], calibration[1][3], calibration[2][3], calibration[3][3]},
+							{calibration[0][4], calibration[1][4], calibration[2][4], calibration[3][4]} };
+	double detA = det(aPoint);
+	double detB = det(bPoint);
+	double detC = det(cPoint);
+	double detD = det(dPoint);
+	double a[3] = { point1.at(0)*detA / calibrationDenomDet, point1.at(1)*detA / calibrationDenomDet, point1.at(2)*detA / calibrationDenomDet };
+	double b[3] = { point2.at(0)*detB / calibrationDenomDet, point2.at(1)*detB / calibrationDenomDet, point2.at(2)*detB / calibrationDenomDet };
+	double c[3] = { point3.at(0)*detC / calibrationDenomDet, point3.at(1)*detC / calibrationDenomDet, point3.at(2)*detC / calibrationDenomDet };
+	double d[3] = { point4.at(0)*detD / calibrationDenomDet, point4.at(1)*detD / calibrationDenomDet, point4.at(2)*detD / calibrationDenomDet };
+	out[0] = (-1 * (a[0] + b[0] + c[0] + d[0]));
+	out[1] = (-1 * (a[1] + b[1] + c[1] + d[1]));
+	out[2] = (-1 * (a[2] + b[2] + c[2] + d[2]));
 }
 
 double det(double A[4][4])
@@ -1297,6 +1324,7 @@ void Tracker::calibrate(std::string inputString)
 	//connection->GetHMDPose(headPose);
 
 	//get some controller positionns too
+	//Store initial points and target points - break up string to form initial space points
 	std::vector<std::string> result;
 	std::stringstream s_stream(inputString); //create string stream from the string
 	while (s_stream.good()) {
@@ -1304,25 +1332,17 @@ void Tracker::calibrate(std::string inputString)
 		getline(s_stream, substr, ','); //get first string delimited by comma
 		result.push_back(substr);
 	}
-	/*
-	double leftHand[3] = { stod(result.at(12)), stod(result.at(13)), stod(result.at(14)) };
-	double rightHand[3] = { stod(result.at(15)), stod(result.at(16)), stod(result.at(17)) };
-	double head[3] = { stod(result.at(18)), stod(result.at(19)), stod(result.at(20)) };
-	double leftAnkle[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
-	double rightAnkle[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
-	double leftKnee[3] = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
-	double rightKnee[3] = { stod(result.at(9)), stod(result.at(10)), stod(result.at(11)) };
-	//get vector of vertical direction by taking knees and ankles and averaging vertical vector here
-	std::vector<double> zLocal = { (leftKnee[0] - leftAnkle[0] + rightKnee[0] - rightAnkle[0]) / 2,
-								(leftKnee[1] - leftAnkle[1] + rightKnee[1] - rightAnkle[1]) / 2,
-								(leftKnee[2] - leftAnkle[2] + rightKnee[2] - rightAnkle[2]) / 2 };
-	std::vector<double> yLocal = { (leftKnee[0] - rightKnee[0] + leftAnkle[0] - rightAnkle[0]) / 2,
-								(leftKnee[1] - rightKnee[1] + leftAnkle[1] - rightAnkle[1]) / 2,
-								(leftKnee[2] - rightKnee[2] + leftAnkle[2] - rightAnkle[2]) / 2 };
-	*/
-	double leftHand[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
-	double rightHand[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
-	double head[3] = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
+
+	//3 is head, 4 is right controller
+	point3 = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	point4 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	//target points are in vr space
+	double point3t[3]
+	double point4t[3]
+
+	//double leftHand[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	//double rightHand[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	//double head[3] = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
 	//in order to calibrate I'll need to know is this vector and then rotate such that this is vertical
 	//then I'll need to rotate such that this is now vertical and then reverse this process to rotate our point systems - quaternions good here
 	//x = RotationAxis.x * sin(RotationAngle / 2)
@@ -1354,8 +1374,6 @@ void Tracker::calibrate(std::string inputString)
 	//printf("%f %f %f\n", angleX, angleY, angleZ);
 	//The above may not be totally necessary, we want to find the rotation matrix to map a vector to another vector:
 	//https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-	std::vector<double> xLocal = {0, 0, 0};
-	crossProduct(zLocal, yLocal, xLocal);
 
 	/*
 	THIS DOES NOT WORK
@@ -1431,12 +1449,34 @@ void Tracker::calibrate(std::string inputString)
 
 void Tracker::initialCalibration(std::string inputString)
 {
+	//get hmd position
+	double headPose[7];
+	double leftHandPose[7];
+	double rightHandPose[7];
+
+	connection->GetHMDPose(headPose);
+	connection->GetControllerPose(leftHandPose);
+
 	//3D transformations
 	//Mapping a point
-	//break up input string, store here
-	point1
-	point2
+	//break up input string
+	//get some controller positionns too
+	//Store initial points and target points - break up string to form initial space points
+	std::vector<std::string> result;
+	std::stringstream s_stream(inputString); //create string stream from the string
+	while (s_stream.good()) {
+		std::string substr;
+		getline(s_stream, substr, ','); //get first string delimited by comma
+		result.push_back(substr);
+	}
+	//1 is head, 2 is right controller
+	point1 = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	point2 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
 	//store point1 and point 2 (hmd/right controller) from python side, then point1t/point2t	
+	//target points are in vr space
+	double point1t[3]
+	double point2t[3]
+
 
 	calibration[0][0] = 0;
 	calibration[0][1] = 0;

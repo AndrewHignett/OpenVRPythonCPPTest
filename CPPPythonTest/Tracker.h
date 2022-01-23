@@ -55,7 +55,7 @@ public:
 
     double calibScale = 1;
 	double calibration[5][5];
-	std::vector<std::vector<double>> point1, point2, point3, point4;
+	std::vector<double> point1, point2, point3, point4;
 	double calibrationDenomDet;
 
 	void testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz);
