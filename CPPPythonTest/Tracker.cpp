@@ -1214,7 +1214,7 @@ void Tracker::MainLoop()
 
 			//testing
 			double outpose[7];
-			connection->GetControllerPose(outpose);
+			connection->GetControllerPose(outpose, 1);
 		}
 	//}
 }
@@ -1223,7 +1223,7 @@ void Tracker::MainLoop()
 void Tracker::testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz)
 {
 	double outpose[7];
-	connection->GetControllerPose(outpose);
+	connection->GetControllerPose(outpose, 1);
 	//tellin the difference between left and right can be difficult, doesn't quite work when user direction changes
 	//could use direction the user is facing to make this work
 
@@ -1257,6 +1257,21 @@ void rotatePoints(std::vector<double> point, std::vector<double> x, std::vector<
 	need to find how to move a point to a new axis/coordinate system
 	https://math.stackexchange.com/questions/542801/rotate-3d-coordinate-system-such-that-z-axis-is-parallel-to-a-given-vector
 	*/
+}
+
+double det(double A[4][4])
+{
+	double c, r = 1;
+	for (int i = 0; i < 4; i++) {
+		for (int k = i + 1; k < 4; k++) {
+			c = A[k][i] / A[i][i];
+			for (int j = i; j < 4; j++)
+				A[k][j] = A[k][j] - c * A[i][j];
+		}
+	}
+	for (int i = 0; i < 4; i++)
+		r *= A[i][i];
+	return r;
 }
 
 void Tracker::MapPoint(double point[3], double out[3])
@@ -1295,22 +1310,6 @@ void Tracker::MapPoint(double point[3], double out[3])
 	out[2] = (-1 * (a[2] + b[2] + c[2] + d[2]));
 }
 
-double det(double A[4][4])
-{
-	double c, r = 1;
-	for (int i = 0; i < 4; i++) {
-		for (int k = i + 1; k < 4; k++) {
-			c = A[k][i] / A[i][i];
-			for (int j = i; j < 4; j++)
-				A[k][j] = A[k][j] - c * A[i][j];
-		}
-	}
-	for (int i = 0; i < 4; i++)
-		r *= A[i][i];
-	return r;
-}
-
-
 void Tracker::calibrate(std::string inputString)
 {
 	//get hmd position
@@ -1319,7 +1318,8 @@ void Tracker::calibrate(std::string inputString)
 	double rightHandPose[7];
 
 	connection->GetHMDPose(headPose);
-	connection->GetControllerPose(leftHandPose);
+	connection->GetControllerPose(leftHandPose, 1);
+	connection->GetControllerPose(rightHandPose, 2);
 	//need to pick which hand I'm gettin the controller pose from
 	//connection->GetHMDPose(headPose);
 
@@ -1337,8 +1337,8 @@ void Tracker::calibrate(std::string inputString)
 	point3 = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
 	point4 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
 	//target points are in vr space
-	double point3t[3]
-	double point4t[3]
+	double point3t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
+	double point4t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
 
 	//double leftHand[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
 	//double rightHand[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
@@ -1364,9 +1364,9 @@ void Tracker::calibrate(std::string inputString)
 	
 	//get angle between vector and axes
 	std::vector<double> x, y, z;
-	x = { 1, 0, 0 };//mag is 1
-	y = { 0, 1, 0 };//mag is 1
-	z = { 0, 0, 1 };//mag is 1
+	//x = { 1, 0, 0 };//mag is 1
+	//y = { 0, 1, 0 };//mag is 1
+	//z = { 0, 0, 1 };//mag is 1
 	//angle between
 	//double angleX = acos(std::inner_product(vertical.begin(), vertical.end(), x.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
 	//double angleY = acos(std::inner_product(vertical.begin(), vertical.end(), y.begin(), 0) / sqrt(vertical[0] * vertical[0] + vertical[1] * vertical[1] + vertical[2] * vertical[2]));
@@ -1394,12 +1394,12 @@ void Tracker::calibrate(std::string inputString)
 	*/
 	
 	calibration[3][0] = 1;
-	point3 = inputPoint3;
+	//point3 = inputPoint3;
 	calibration[3][1] = point3t[0];
 	calibration[3][2] = point3t[1];
 	calibration[3][3] = point3t[2];
 	calibration[4][0] = 1;
-	point4 = inputPoint4;
+	//point4 = inputPoint4;
 	calibration[4][1] = point4t[0];
 	calibration[4][2] = point4t[1];
 	calibration[4][3] = point4t[2];
@@ -1424,6 +1424,8 @@ void Tracker::calibrate(std::string inputString)
 	//Above is a fixed determinant, regardless of input points, calculate and store this
 	calibrationDenomDet = det(calibrationDenom);
 
+	
+	
 
 	//Quaternion<double> 
 	//We need a coordinate system:
@@ -1437,12 +1439,12 @@ void Tracker::calibrate(std::string inputString)
 	//Use magnitudes of the below in steamvr and mediapose to deal with what to multiple point locations by
 	//Need to deal with visibilty and only deal with those, then average them for magnitude
 	//magnitude of vector from left hand to head
-	double magLH = sqrt(pow(leftHand[0] - head[0], 2.0) + pow(leftHand[1] - head[1], 2.0) + pow(leftHand[2] - head[2], 2.0));
+	//double magLH = sqrt(pow(leftHand[0] - head[0], 2.0) + pow(leftHand[1] - head[1], 2.0) + pow(leftHand[2] - head[2], 2.0));
 	//magnitude of vector from left hand to right hand
-	double magLR = sqrt(pow(leftHand[0] - rightHand[0], 2.0) + pow(leftHand[1] - rightHand[1], 2.0) + pow(leftHand[2] - rightHand[2], 2.0));
+	//double magLR = sqrt(pow(leftHand[0] - rightHand[0], 2.0) + pow(leftHand[1] - rightHand[1], 2.0) + pow(leftHand[2] - rightHand[2], 2.0));
 	//magnitude of vector from right hand to head
-	double magRH = sqrt(pow(rightHand[0] - head[0], 2.0) + pow(rightHand[1] - head[1], 2.0) + pow(rightHand[2] - head[2], 2.0));
-	double magnitude = (magLH + magLR + magRH) / 3;
+	//double magRH = sqrt(pow(rightHand[0] - head[0], 2.0) + pow(rightHand[1] - head[1], 2.0) + pow(rightHand[2] - head[2], 2.0));
+	//double magnitude = (magLH + magLR + magRH) / 3;
 	//scale dimensions based on different between these
 	//Probably can figure out how to adjust rotation and centre on the controller
 }
@@ -1455,7 +1457,8 @@ void Tracker::initialCalibration(std::string inputString)
 	double rightHandPose[7];
 
 	connection->GetHMDPose(headPose);
-	connection->GetControllerPose(leftHandPose);
+	connection->GetControllerPose(leftHandPose, 1);
+	connection->GetControllerPose(rightHandPose, 2);
 
 	//3D transformations
 	//Mapping a point
@@ -1474,9 +1477,16 @@ void Tracker::initialCalibration(std::string inputString)
 	point2 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
 	//store point1 and point 2 (hmd/right controller) from python side, then point1t/point2t	
 	//target points are in vr space
-	double point1t[3]
-	double point2t[3]
+	double point1t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
+	double point2t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
 
+	//Currently the pose positons are very very very large, this is normally indicative of the value not being defined? 
+	//Sounds like it's being returned properly
+	printf("Point1t test: %f\n", headPose[0] - leftHandPose[0]);
+	printf("Point1t test2: %f\n", leftHandPose[0]);
+	printf("Point1t test3: %f\n", headPose[0]);
+	printf("Point1t: %f %f %f\n", point1t[0], point1t[1], point1t[2]);
+	printf("Point2t: %f %f %f\n", point2t[0], point2t[1], point2t[2]);
 
 	calibration[0][0] = 0;
 	calibration[0][1] = 0;
@@ -1495,5 +1505,12 @@ void Tracker::initialCalibration(std::string inputString)
 	calibration[2][1] = point2t[0];
 	calibration[2][2] = point2t[1];
 	calibration[2][3] = point2t[2];	
-	
+	printf("Calibration Det: %f\n", calibrationDenomDet);
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 5; j++) {
+			printf("%f ", calibration[j][i]);
+		}
+		printf("\n");
+	}
 }

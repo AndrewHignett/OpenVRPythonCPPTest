@@ -113,6 +113,7 @@ void main()
 					//store the necessary points so these and the next buff can be fed into the tracker
 					//or could just store these as part of the tracker, as intended
 					tracker->initialCalibration(buf);
+					firstCalibration = false;
 				}
 				else {
 					tracker->calibrate(buf);

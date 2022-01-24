@@ -283,10 +283,10 @@ int Connection::GetButtonStates()
     return 0;
 }
 
-void Connection::GetControllerPose(double outpose[])
+void Connection::GetControllerPose(double outpose[], int controller)
 {
-    
-    std::istringstream ret = Send("getdevicepose 1");
+	std::string controllerStr = "getdevicepose " + std::to_string(controller);
+    std::istringstream ret = Send(controllerStr);
     std::string word;
 
     //first three variables are a position vector
@@ -330,7 +330,7 @@ void Connection::GetControllerPose(double outpose[])
     a = -a;
     c = -c;
 
-	printf("ControllerPose: %d, %d, %d, %d, %d, %d, %d", a, b, c, qw, qx, qy, qz);
+	//printf("ControllerPose: %d, %d, %d, %d, %d, %d, %d", a, b, c, qw, qx, qy, qz);
 
     outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
 }

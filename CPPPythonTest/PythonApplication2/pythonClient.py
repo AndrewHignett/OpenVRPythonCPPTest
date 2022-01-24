@@ -10,7 +10,7 @@ import time
 import socket
 
 port = 8888
-firstCall = True;
+firstCall = True
 
 #for pings in range(10000):
     #client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -33,6 +33,14 @@ def sendToServer(thisMessage):
      addr = ("127.0.0.1", port)
      client_socket.sendto((thisMessage), addr)
 
+def connect():
+    print("connect\n")
+    #btnAddTrackers["state"] = "normal"
+    btnConnect["state"] = "disabled"
+    btnCalibrate["state"] = "normal"
+    sendToServer(b'%')
+    return 0;
+
 def calibrate():
     pointsString = "+"
     first = True
@@ -49,25 +57,19 @@ def calibrate():
     print(pointsString)
     print("big boi calibration\n")
     
-    
+    global firstCall
     if (firstCall):
         btnCalibrate2["state"] = "normal"    
-        btnCalibrate["state"] = "disabled"    
+        btnCalibrate["state"] = "disabled" 
+        firstCall = False
     else:
-        btnConnect["state"] = "normal"
+        btnAddTrackers["state"] = "normal"
         btnCalibrate2["state"] = "disabled"
     #will need to send points to C++, from there calibration can be determined
     #sendToServer(b'+')
     sendToServer(str.encode(pointsString))
     #use left and right knew and ankles when we have one - realistically we only want to send the important points to the server
     return 0
-
-def connect():
-    print("connect\n")
-    btnAddTrackers["state"] = "normal"
-    btnConnect["state"] = "disabled"
-    sendToServer(b'%')
-    return 0;
 
 def addTrackers():
     print("Add tracker\n")
@@ -84,7 +86,7 @@ def calibrationTracking():
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 427)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-    w, h = 3, w#7
+    w, h = 3, 3#7
     calibrationPointsTracked = [[float(0.0) for x in range(w)] for y in range(h)]
     i = 0
     with mp_pose.Pose(
@@ -303,20 +305,20 @@ top = tkinter.Tk()
 
 top.geometry("512x512")
 
+btnConnect = tkinter.Button(top, text ="Connect", command = connect)
 btnCalibrate = tkinter.Button(top, text ="Calibrate", command = calibrate)
 btnCalibrate2 = tkinter.Button(top, text ="Calibrate2", command = calibrate)
-btnConnect = tkinter.Button(top, text ="Connect", command = connect)
 btnAddTrackers = tkinter.Button(top, text ="Add Trackers", command = addTrackers)
 btnTracking = tkinter.Button(top, text ="Start Tracking", command = tracking)
 
+btnCalibrate["state"] = "disabled"
 btnCalibrate2["state"] = "disabled"
-btnConnect["state"] = "disabled"
 btnAddTrackers["state"] = "disabled"
 btnTracking["state"] = "disabled"
 
+btnConnect.pack()
 btnCalibrate.pack()
 btnCalibrate2.pack()
-btnConnect.pack()
 btnAddTrackers.pack()
 btnTracking.pack()
 top.mainloop()
