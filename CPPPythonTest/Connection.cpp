@@ -283,7 +283,7 @@ int Connection::GetButtonStates()
     return 0;
 }
 
-void Connection::GetControllerPose(double outpose[], int controller)
+double* Connection::GetControllerPose(int controller)
 {
 	std::string controllerStr = "getdevicepose " + std::to_string(controller);
     std::istringstream ret = Send(controllerStr);
@@ -307,7 +307,7 @@ void Connection::GetControllerPose(double outpose[], int controller)
     if (vr::VRInput()->GetPoseActionDataForNextFrame(m_actionHand, vr::TrackingUniverseRawAndUncalibrated, &poseData, sizeof(poseData), vr::k_ulInvalidInputValueHandle) != vr::VRInputError_None
         || !poseData.bActive || !poseData.pose.bPoseIsValid)
     {
-        return;
+        //return;
     }
     else
     {
@@ -330,12 +330,14 @@ void Connection::GetControllerPose(double outpose[], int controller)
     a = -a;
     c = -c;
 
-	//printf("ControllerPose: %d, %d, %d, %d, %d, %d, %d", a, b, c, qw, qx, qy, qz);
+	printf("ControllerPose: %f, %f, %f, %f, %f, %f, %f\n", a, b, c, qw, qx, qy, qz);
 
-    outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
+    //outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
+	double outpose[7] = { a, b, c, qw, qx, qy, qz };
+	return outpose;
 }
 
-void Connection::GetHMDPose(double outpose[])
+double* Connection::GetHMDPose()
 {
 
 	std::istringstream ret = Send("getdevicepose 0");
@@ -359,7 +361,7 @@ void Connection::GetHMDPose(double outpose[])
 	if (vr::VRInput()->GetPoseActionDataForNextFrame(m_actionHand, vr::TrackingUniverseRawAndUncalibrated, &poseData, sizeof(poseData), vr::k_ulInvalidInputValueHandle) != vr::VRInputError_None
 		|| !poseData.bActive || !poseData.pose.bPoseIsValid)
 	{
-		return;
+		//return;
 	}
 	else
 	{
@@ -382,7 +384,9 @@ void Connection::GetHMDPose(double outpose[])
 	a = -a;
 	c = -c;
 
-	printf("HMD Pose: %d, %d, %d, %d, %d, %d, %d", a, b, c, qw, qx, qy, qz);
+	printf("HMD Pose: %f, %f, %f, %f, %f, %f, %f\n", a, b, c, qw, qx, qy, qz);
 
-	outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
+	//outpose[0] = a; outpose[1] = b; outpose[2] = c; outpose[3] = qw; outpose[4] = qx; outpose[5] = qy; outpose[6] = qz;
+	double outpose[7] = { a, b, c, qw, qx, qy, qz };
+	return outpose;
 }

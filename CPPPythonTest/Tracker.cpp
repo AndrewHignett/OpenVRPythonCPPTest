@@ -1211,10 +1211,6 @@ void Tracker::MainLoop()
 			//connection->SendTracker(connection->connectedTrackers[i].DriverId, 0, 0, 0, qw, qx, qy, qz, -0.001, 0.5);
 			//connection->SendTracker(connection->connectedTrackers[i].DriverId, -0.884917, 0.652706, 0.469284, 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);
 			//run the above with x, y, z corrected based on tracking
-
-			//testing
-			double outpose[7];
-			connection->GetControllerPose(outpose, 1);
 		}
 	//}
 }
@@ -1223,40 +1219,29 @@ void Tracker::MainLoop()
 void Tracker::testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz)
 {
 	double outpose[7];
-	connection->GetControllerPose(outpose, 1);
+	memcpy(outpose, connection->GetControllerPose(1), 7 * sizeof(double));
 	//tellin the difference between left and right can be difficult, doesn't quite work when user direction changes
 	//could use direction the user is facing to make this work
 
 
 	//making these relative to hand position made trackers invisible
-	connection->SendTracker(connection->connectedTrackers[1].DriverId, ax + outpose[0], ay + outpose[1], az + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5); //left ankle
-	connection->SendTracker(connection->connectedTrackers[2].DriverId, bx + outpose[0], by + outpose[1], bz + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);  //right ankle
+	//connection->SendTracker(connection->connectedTrackers[1].DriverId, ax + outpose[0], ay + outpose[1], az + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5); //left ankle
+	//connection->SendTracker(connection->connectedTrackers[2].DriverId, bx + outpose[0], by + outpose[1], bz + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);  //right ankle
+	//connection->SendTracker(connection->connectedTrackers[0].DriverId, cx, cy, cz, 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);
+	//connection->SendTracker(connection->connectedTrackers[0].DriverId, -outpose[0], -outpose[1], -outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);//waist
+
+	//making these relative to hand position made trackers invisible
+	double newPointA[3];
+	double pointA[3] = { ax, ay, az };
+	MapPoint(pointA, newPointA);
+	connection->SendTracker(connection->connectedTrackers[1].DriverId, newPointA[0] + outpose[0], newPointA[1] + outpose[1], newPointA[2] + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5); //left ankle
+	double newPointB[3];
+	double pointB[3] = { bx, by, bz };
+	MapPoint(pointB, newPointB);
+	connection->SendTracker(connection->connectedTrackers[2].DriverId, newPointB[0] + outpose[0], newPointB[1] + outpose[1], newPointB[2] + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);  //right ankle
 	//connection->SendTracker(connection->connectedTrackers[0].DriverId, cx, cy, cz, 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);
 	connection->SendTracker(connection->connectedTrackers[0].DriverId, -outpose[0], -outpose[1], -outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);//waist
 	//run the above with x, y, z corrected based on tracking
-}
-
-void crossProduct(std::vector<double> z, std::vector<double> y, std::vector<double> xOut) {
-	xOut[0] = z[1] * y[2] - z[2] * y[1];
-	xOut[1] = -(z[0] * y[2] - z[2] * y[0]);
-	xOut[2] = z[0] * y[1] - z[1] * y[0];
-}
-
-void rotatePoints(std::vector<double> point, std::vector<double> x, std::vector<double> y, std::vector<double> z)
-{
-	//https://stackoverflow.com/questions/29754538/rotate-object-from-one-coordinate-system-to-another
-	//point[0]*(x[0] + y[0] + z[0]), point[0]*()
-
-	//changing basis in 3d should be easy
-	/*
-	Consider this:
-	point{x, y, z} is our point
-	point.x * xVector + point.y * yVector +	point.z * zVector 
-	^This is not valid - https://math.stackexchange.com/questions/1346802/how-to-change-of-basis-from-3-points
-
-	need to find how to move a point to a new axis/coordinate system
-	https://math.stackexchange.com/questions/542801/rotate-3d-coordinate-system-such-that-z-axis-is-parallel-to-a-given-vector
-	*/
 }
 
 double det(double A[4][4])
@@ -1314,12 +1299,11 @@ void Tracker::calibrate(std::string inputString)
 {
 	//get hmd position
 	double headPose[7];
+	memcpy(headPose, connection->GetHMDPose(), 7 * sizeof(double));
 	double leftHandPose[7];
+	memcpy(leftHandPose, connection->GetControllerPose(1), 7 * sizeof(double));
 	double rightHandPose[7];
-
-	connection->GetHMDPose(headPose);
-	connection->GetControllerPose(leftHandPose, 1);
-	connection->GetControllerPose(rightHandPose, 2);
+	memcpy(rightHandPose, connection->GetControllerPose(2), 7 * sizeof(double));
 	//need to pick which hand I'm gettin the controller pose from
 	//connection->GetHMDPose(headPose);
 
@@ -1334,8 +1318,8 @@ void Tracker::calibrate(std::string inputString)
 	}
 
 	//3 is head, 4 is right controller
-	point3 = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
-	point4 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	point3 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	point4 = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
 	//target points are in vr space
 	double point3t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
 	double point4t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
@@ -1363,7 +1347,7 @@ void Tracker::calibrate(std::string inputString)
 	*/
 	
 	//get angle between vector and axes
-	std::vector<double> x, y, z;
+	//std::vector<double> x, y, z;
 	//x = { 1, 0, 0 };//mag is 1
 	//y = { 0, 1, 0 };//mag is 1
 	//z = { 0, 0, 1 };//mag is 1
@@ -1424,6 +1408,14 @@ void Tracker::calibrate(std::string inputString)
 	//Above is a fixed determinant, regardless of input points, calculate and store this
 	calibrationDenomDet = det(calibrationDenom);
 
+	printf("Calibration Det: %f\n", calibrationDenomDet);
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 5; j++) {
+			printf("%f ", calibration[j][i]);
+		}
+		printf("\n");
+	}
 	
 	
 
@@ -1453,12 +1445,11 @@ void Tracker::initialCalibration(std::string inputString)
 {
 	//get hmd position
 	double headPose[7];
+	memcpy(headPose, connection->GetHMDPose(), 7 * sizeof(double));
 	double leftHandPose[7];
+	memcpy(leftHandPose, connection->GetControllerPose(1), 7 * sizeof(double));
 	double rightHandPose[7];
-
-	connection->GetHMDPose(headPose);
-	connection->GetControllerPose(leftHandPose, 1);
-	connection->GetControllerPose(rightHandPose, 2);
+	memcpy(rightHandPose, connection->GetControllerPose(2), 7 * sizeof(double));
 
 	//3D transformations
 	//Mapping a point
@@ -1473,20 +1464,12 @@ void Tracker::initialCalibration(std::string inputString)
 		result.push_back(substr);
 	}
 	//1 is head, 2 is right controller
-	point1 = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
-	point2 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	point1 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	point2 = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
 	//store point1 and point 2 (hmd/right controller) from python side, then point1t/point2t	
 	//target points are in vr space
 	double point1t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
 	double point2t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
-
-	//Currently the pose positons are very very very large, this is normally indicative of the value not being defined? 
-	//Sounds like it's being returned properly
-	printf("Point1t test: %f\n", headPose[0] - leftHandPose[0]);
-	printf("Point1t test2: %f\n", leftHandPose[0]);
-	printf("Point1t test3: %f\n", headPose[0]);
-	printf("Point1t: %f %f %f\n", point1t[0], point1t[1], point1t[2]);
-	printf("Point2t: %f %f %f\n", point2t[0], point2t[1], point2t[2]);
 
 	calibration[0][0] = 0;
 	calibration[0][1] = 0;
@@ -1505,12 +1488,4 @@ void Tracker::initialCalibration(std::string inputString)
 	calibration[2][1] = point2t[0];
 	calibration[2][2] = point2t[1];
 	calibration[2][3] = point2t[2];	
-	printf("Calibration Det: %f\n", calibrationDenomDet);
-	for (int i = 0; i < 5; i++)
-	{
-		for (int j = 0; j < 5; j++) {
-			printf("%f ", calibration[j][i]);
-		}
-		printf("\n");
-	}
 }

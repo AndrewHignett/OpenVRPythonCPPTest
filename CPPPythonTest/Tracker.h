@@ -61,6 +61,7 @@ public:
 	void testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz);
 	void calibrate(std::string inputString);
 	void initialCalibration(std::string inputString);
+	void MapPoint(double inputPoint[3], double out[3]);
 
 private:
     void CameraLoop();
@@ -69,7 +70,7 @@ private:
     void CalibrateCameraCharuco();
     void CalibrateTracker();
     void MainLoop();
-	void MapPoint(double inputPoint[3], double out[3]);
+	
 
 
     int drawImgSize = 480;

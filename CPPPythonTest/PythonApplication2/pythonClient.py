@@ -88,7 +88,7 @@ def calibrationTracking():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
     w, h = 3, 3#7
     calibrationPointsTracked = [[float(0.0) for x in range(w)] for y in range(h)]
-    i = 0
+    pointTrackingTracker = [0, 0, 0]
     with mp_pose.Pose(
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5) as pose:
@@ -106,30 +106,37 @@ def calibrationTracking():
             results = pose.process(image)
 
             if (results.pose_landmarks is not None):
+                #print(results.pose_landmarks.landmark[17].visibility, results.pose_landmarks.landmark[18].visibility, results.pose_landmarks.landmark[19].visibility, results.pose_landmarks.landmark[20].visibility, results.pose_landmarks.landmark[0].visibility)
                 #need to adjust this based on visibility and capture 5 points when appropraitely visible
-                calibrationPointsTracked[0][0] += results.pose_landmarks.landmark[17].x/10 + results.pose_landmarks.landmark[19].x/10#left controller
-                calibrationPointsTracked[0][1] += results.pose_landmarks.landmark[17].y/10 + results.pose_landmarks.landmark[19].y/10#left controller
-                calibrationPointsTracked[0][2] += results.pose_landmarks.landmark[17].z/10 + results.pose_landmarks.landmark[19].z/10#left controller
-                calibrationPointsTracked[1][0] += results.pose_landmarks.landmark[18].x/10 + results.pose_landmarks.landmark[20].x/10#right controller
-                calibrationPointsTracked[1][1] += results.pose_landmarks.landmark[18].y/10 + results.pose_landmarks.landmark[20].y/10#right controller
-                calibrationPointsTracked[1][2] += results.pose_landmarks.landmark[18].z/10 + results.pose_landmarks.landmark[20].z/10#right controller
-                calibrationPointsTracked[2][0] += results.pose_landmarks.landmark[0].x/5 #nose - hmd?
-                calibrationPointsTracked[2][1] += results.pose_landmarks.landmark[0].y/5 #nose - hmd?
-                calibrationPointsTracked[2][2] += results.pose_landmarks.landmark[0].z/5 #nose - hmd?    
-                i += 1
-                if (i == 5):
+                if ((results.pose_landmarks.landmark[17].visibility or results.pose_landmarks.landmark[19].visibility) > 0.6 and pointTrackingTracker[0] < 5):
+                    calibrationPointsTracked[0][0] += results.pose_landmarks.landmark[17].x/10 + results.pose_landmarks.landmark[19].x/10#left controller
+                    calibrationPointsTracked[0][1] += results.pose_landmarks.landmark[17].y/10 + results.pose_landmarks.landmark[19].y/10#left controller
+                    calibrationPointsTracked[0][2] += results.pose_landmarks.landmark[17].z/10 + results.pose_landmarks.landmark[19].z/10#left controller
+                    pointTrackingTracker[0] += 1
+                if ((results.pose_landmarks.landmark[18].visibility or results.pose_landmarks.landmark[20].visibility) > 0.6 and pointTrackingTracker[1] < 5):
+                    calibrationPointsTracked[1][0] += results.pose_landmarks.landmark[18].x/10 + results.pose_landmarks.landmark[20].x/10#right controller
+                    calibrationPointsTracked[1][1] += results.pose_landmarks.landmark[18].y/10 + results.pose_landmarks.landmark[20].y/10#right controller
+                    calibrationPointsTracked[1][2] += results.pose_landmarks.landmark[18].z/10 + results.pose_landmarks.landmark[20].z/10#right controller
+                    pointTrackingTracker[1] += 1
+                if (results.pose_landmarks.landmark[0].visibility > 0.6 and pointTrackingTracker[2] < 5):
+                    calibrationPointsTracked[2][0] += results.pose_landmarks.landmark[0].x/5 #nose - hmd?
+                    calibrationPointsTracked[2][1] += results.pose_landmarks.landmark[0].y/5 #nose - hmd?
+                    calibrationPointsTracked[2][2] += results.pose_landmarks.landmark[0].z/5 #nose - hmd?    
+                    pointTrackingTracker[2] += 1
+                if (pointTrackingTracker[0] > 4 and pointTrackingTracker[1] > 4 and pointTrackingTracker[2] > 4):
                     capturedPoints = True
-            #treat left controller as (0,0,0)
-            calibrationPointsTracked[1][0] -= calibrationPointsTracked[0][0]
-            calibrationPointsTracked[1][1] -= calibrationPointsTracked[0][1]
-            calibrationPointsTracked[1][2] -= calibrationPointsTracked[0][2]
-            calibrationPointsTracked[2][0] -= calibrationPointsTracked[0][0]
-            calibrationPointsTracked[2][1] -= calibrationPointsTracked[0][1]
-            calibrationPointsTracked[2][2] -= calibrationPointsTracked[0][2]
-            calibrationPointsTracked[0][0] = 0
-            calibrationPointsTracked[0][1] = 0
-            calibrationPointsTracked[0][2] = 0
+                print(pointTrackingTracker)
             if (cv2.waitKey(5) & 0xFF == 27)or(capturedPoints):
+                #treat left controller as (0,0,0)
+                calibrationPointsTracked[1][0] -= calibrationPointsTracked[0][0]
+                calibrationPointsTracked[1][1] -= calibrationPointsTracked[0][1]
+                calibrationPointsTracked[1][2] -= calibrationPointsTracked[0][2]
+                calibrationPointsTracked[2][0] -= calibrationPointsTracked[0][0]
+                calibrationPointsTracked[2][1] -= calibrationPointsTracked[0][1]
+                calibrationPointsTracked[2][2] -= calibrationPointsTracked[0][2]
+                calibrationPointsTracked[0][0] = 0
+                calibrationPointsTracked[0][1] = 0
+                calibrationPointsTracked[0][2] = 0
                 break
     cap.release()
     return calibrationPointsTracked
@@ -322,3 +329,13 @@ btnCalibrate2.pack()
 btnAddTrackers.pack()
 btnTracking.pack()
 top.mainloop()
+
+'''
+1. I need to ensure the left and right controllers are the same as left and right hands, or track based on the head
+2. The head may not be a great tracky point
+3. The trackers jump all over the place, not totally sure what's causing that other than having some dodgy calibration points. I'll need to confirm visibility of points is good.
+4. I need to make sure that x y and z directions are as expected - I'm pretty sure they're not, since moving my leg up generally makes it move in the y direction. Chances are that y and z are the other way around, since they can vary a little in 3d sometimes.
+
+It may be good to ensure that the tracks are always within a radius of the person or up to a given distance from each other
+Ignore points if too far - this should eliminate random crazy variations
+'''
