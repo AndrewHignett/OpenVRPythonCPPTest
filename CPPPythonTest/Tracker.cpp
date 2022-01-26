@@ -1215,6 +1215,23 @@ void Tracker::MainLoop()
 	//}
 }
 
+bool Tracker::IsInRange(double newPoint[3])
+{
+	double outpose[7];
+	memcpy(outpose, connection->GetHMDPose(), 7 * sizeof(double));
+	double distance = sqrt((newPoint[0] - outpose[0])*(newPoint[0] - outpose[0]) +
+							(newPoint[1] - outpose[1])*(newPoint[1] - outpose[1]) +
+							(newPoint[2] - outpose[2])*(newPoint[2] - outpose[2]));
+	printf("\n\noutpose: %f %f %f\n", outpose[0], outpose[1], outpose[2]);
+	printf("newPoint: %f %f %f\n", newPoint[0], newPoint[1], newPoint[2]);
+	printf("distance: %f\n", distance);
+	if (distance < 2)
+	{
+		return true;
+	}
+	return false;
+}
+
 //could use arrays here to pass in so we can loop
 void Tracker::testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz)
 {
@@ -1234,11 +1251,28 @@ void Tracker::testFunction(double ax, double ay, double az, double bx, double by
 	double newPointA[3];
 	double pointA[3] = { ax, ay, az };
 	MapPoint(pointA, newPointA);
-	connection->SendTracker(connection->connectedTrackers[1].DriverId, newPointA[0] + outpose[0], newPointA[1] + outpose[1], newPointA[2] + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5); //left ankle
+	newPointA[0] += outpose[0];
+	newPointA[1] += outpose[1];
+	newPointA[2] += outpose[2];
+	//connection->SendTracker(connection->connectedTrackers[1].DriverId, newPointA[0] + outpose[0], newPointA[1] + outpose[1], newPointA[2] + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5); //left ankle
+	if (IsInRange(newPointA))
+	{
+		connection->SendTracker(connection->connectedTrackers[1].DriverId, newPointA[0], newPointA[1], newPointA[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 1); //left ankle
+	}
 	double newPointB[3];
 	double pointB[3] = { bx, by, bz };
 	MapPoint(pointB, newPointB);
-	connection->SendTracker(connection->connectedTrackers[2].DriverId, newPointB[0] + outpose[0], newPointB[1] + outpose[1], newPointB[2] + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);  //right ankle
+	newPointB[0] += outpose[0];
+	newPointB[1] += outpose[1];
+	newPointB[2] += outpose[2];
+	
+	//printf("IsInRange: %d\n\n", IsInRange(newPointB));
+	if (IsInRange(newPointB))
+	{
+		//connection->SendTracker(connection->connectedTrackers[2].DriverId, newPointB[0] + outpose[0], newPointB[1] + outpose[1], newPointB[2] + outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);  //right ankle
+		connection->SendTracker(connection->connectedTrackers[2].DriverId, newPointB[0], newPointB[1], newPointB[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 1);  //right ankle
+	}
+	
 	//connection->SendTracker(connection->connectedTrackers[0].DriverId, cx, cy, cz, 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);
 	connection->SendTracker(connection->connectedTrackers[0].DriverId, -outpose[0], -outpose[1], -outpose[2], 0.896057, 0.386684, -0.186338, 0.113291, -0.001, 0.5);//waist
 	//run the above with x, y, z corrected based on tracking
@@ -1290,9 +1324,13 @@ void Tracker::MapPoint(double point[3], double out[3])
 	double b[3] = { point2.at(0)*detB / calibrationDenomDet, point2.at(1)*detB / calibrationDenomDet, point2.at(2)*detB / calibrationDenomDet };
 	double c[3] = { point3.at(0)*detC / calibrationDenomDet, point3.at(1)*detC / calibrationDenomDet, point3.at(2)*detC / calibrationDenomDet };
 	double d[3] = { point4.at(0)*detD / calibrationDenomDet, point4.at(1)*detD / calibrationDenomDet, point4.at(2)*detD / calibrationDenomDet };
-	out[0] = (-1 * (a[0] + b[0] + c[0] + d[0]));
-	out[1] = (-1 * (a[1] + b[1] + c[1] + d[1]));
-	out[2] = (-1 * (a[2] + b[2] + c[2] + d[2]));
+	//This doesn't seem to work if negative
+	//out[0] = (-1 * (a[0] + b[0] + c[0] + d[0]));
+	//out[1] = (-1 * (a[1] + b[1] + c[1] + d[1]));
+	//out[2] = (-1 * (a[2] + b[2] + c[2] + d[2]));
+	out[0] = (a[0] + b[0] + c[0] + d[0]);
+	out[1] = (a[1] + b[1] + c[1] + d[1]);
+	out[2] = (a[2] + b[2] + c[2] + d[2]);
 }
 
 void Tracker::calibrate(std::string inputString)

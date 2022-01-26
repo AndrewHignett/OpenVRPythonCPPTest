@@ -221,19 +221,34 @@ def tracking():
 
                 #currently adjusting based on nright hand
                 pointsString = "";
+                
                 first = True;
-                for data_point in landmark_subset.landmark:
-                    allPoints.append(data_point.x)
-                    allPoints.append(data_point.y)
-                    allPoints.append(data_point.z)
-                    if (not first):
-                        #pointsString += "," + str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
-                        pointsString += "," + str(data_point.x - (results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str(data_point.y - (results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str(data_point.z - (results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2)
-                    else:
-                        #pointsString += str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
-                        pointsString += str(data_point.x - (results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str(data_point.y - (results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str(data_point.z - (results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2)
-                        first = False;
-                    
+                #for data_point in landmark_subset.landmark:
+                #    allPoints.append(data_point.x)
+                #    allPoints.append(data_point.y)
+                #    allPoints.append(data_point.z)
+                #    if (not first):
+                #        #pointsString += "," + str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
+                #        pointsString += "," + str(data_point.x - (results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str(data_point.y - (results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str(data_point.z - (results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2)
+                #    else:
+                #        #pointsString += str(data_point.x) + "," + str(data_point.y) + "," + str(data_point.z)
+                #        pointsString += str(data_point.x - (results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str(data_point.y - (results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str(data_point.z - (results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2)
+                #        first = False;
+                
+                leftPointX = (results.pose_landmarks.landmark[17].x + results.pose_landmarks.landmark[19].x)/2
+                leftPointY = (results.pose_landmarks.landmark[17].y + results.pose_landmarks.landmark[19].y)/2
+                leftPointZ = (results.pose_landmarks.landmark[17].z + results.pose_landmarks.landmark[19].z)/2
+                hmdX = results.pose_landmarks.landmark[0].x - leftPointX
+                hmdY = results.pose_landmarks.landmark[0].y - leftPointY
+                hmdZ = results.pose_landmarks.landmark[0].z - leftPointZ
+                leftAnkleX = results.pose_landmarks.landmark[27].x - leftPointX
+                leftAnkleY = results.pose_landmarks.landmark[27].y - leftPointY
+                leftAnkleZ = results.pose_landmarks.landmark[27].z - leftPointZ
+                rightAnkleX = results.pose_landmarks.landmark[28].x - leftPointX
+                rightAnkleY = results.pose_landmarks.landmark[28].y - leftPointY
+                rightAnkleZ = results.pose_landmarks.landmark[28].z - leftPointZ
+                #pointsString += str((results.pose_landmarks.landmark[17].x + results.pose_landmarks.landmark[19].x)/2) + "," + str((results.pose_landmarks.landmark[17].y + results.pose_landmarks.landmark[19].y)/2) + "," + str((results.pose_landmarks.landmark[17].z + results.pose_landmarks.landmark[19].z)/2) + "," + str((results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str((results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str((results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2) + "," + str(results.pose_landmarks.landmark[0].x) + "," + str(results.pose_landmarks.landmark[0].y) + "," + str(results.pose_landmarks.landmark[0].z)
+                pointsString += str(leftAnkleX) + "," + str(leftAnkleY) + "," + str(leftAnkleZ) + "," + str(rightAnkleX) + "," + str(rightAnkleY) + "," + str(rightAnkleZ) + "," + str(hmdX) + "," + str(hmdY) + "," + str(hmdZ)
                 
 
                 image[0:480,0:640] = (0,0,0);
@@ -335,7 +350,10 @@ top.mainloop()
 2. The head may not be a great tracky point
 3. The trackers jump all over the place, not totally sure what's causing that other than having some dodgy calibration points. I'll need to confirm visibility of points is good.
 4. I need to make sure that x y and z directions are as expected - I'm pretty sure they're not, since moving my leg up generally makes it move in the y direction. Chances are that y and z are the other way around, since they can vary a little in 3d sometimes.
+5. Does roration of trackers affect xyz directions at all
 
 It may be good to ensure that the tracks are always within a radius of the person or up to a given distance from each other
-Ignore points if too far - this should eliminate random crazy variations
+Ignore points if too far - this should eliminate random crazy variations -somewhat set up
+
+Could use 0 0 0 -> 0 0 0 as a calibration point
 '''

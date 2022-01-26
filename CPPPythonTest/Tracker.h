@@ -62,6 +62,7 @@ public:
 	void calibrate(std::string inputString);
 	void initialCalibration(std::string inputString);
 	void MapPoint(double inputPoint[3], double out[3]);
+	bool IsInRange(double newPoint[3]);
 
 private:
     void CameraLoop();
