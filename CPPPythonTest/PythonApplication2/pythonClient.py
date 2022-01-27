@@ -128,15 +128,24 @@ def calibrationTracking():
                 print(pointTrackingTracker)
             if (cv2.waitKey(5) & 0xFF == 27)or(capturedPoints):
                 #treat left controller as (0,0,0)
-                calibrationPointsTracked[1][0] -= calibrationPointsTracked[0][0]
-                calibrationPointsTracked[1][1] -= calibrationPointsTracked[0][1]
-                calibrationPointsTracked[1][2] -= calibrationPointsTracked[0][2]
-                calibrationPointsTracked[2][0] -= calibrationPointsTracked[0][0]
-                calibrationPointsTracked[2][1] -= calibrationPointsTracked[0][1]
-                calibrationPointsTracked[2][2] -= calibrationPointsTracked[0][2]
-                calibrationPointsTracked[0][0] = 0
-                calibrationPointsTracked[0][1] = 0
-                calibrationPointsTracked[0][2] = 0
+                #calibrationPointsTracked[1][0] -= calibrationPointsTracked[0][0]
+                #calibrationPointsTracked[1][1] -= calibrationPointsTracked[0][1]
+                #calibrationPointsTracked[1][2] -= calibrationPointsTracked[0][2]
+                #calibrationPointsTracked[2][0] -= calibrationPointsTracked[0][0]
+                #calibrationPointsTracked[2][1] -= calibrationPointsTracked[0][1]
+                #calibrationPointsTracked[2][2] -= calibrationPointsTracked[0][2]
+                #calibrationPointsTracked[0][0] = 0
+                #calibrationPointsTracked[0][1] = 0
+                #calibrationPointsTracked[0][2] = 0
+                calibrationPointsTracked[0][0] -= calibrationPointsTracked[2][0]
+                calibrationPointsTracked[0][1] -= calibrationPointsTracked[2][1]
+                calibrationPointsTracked[0][2] -= calibrationPointsTracked[2][2]
+                calibrationPointsTracked[1][0] -= calibrationPointsTracked[2][0]
+                calibrationPointsTracked[1][1] -= calibrationPointsTracked[2][1]
+                calibrationPointsTracked[1][2] -= calibrationPointsTracked[2][2]
+                calibrationPointsTracked[2][0] = 0
+                calibrationPointsTracked[2][1] = 0
+                calibrationPointsTracked[2][2] = 0
                 break
     cap.release()
     return calibrationPointsTracked
@@ -235,19 +244,29 @@ def tracking():
                 #        pointsString += str(data_point.x - (results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str(data_point.y - (results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str(data_point.z - (results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2)
                 #        first = False;
                 
-                leftPointX = (results.pose_landmarks.landmark[17].x + results.pose_landmarks.landmark[19].x)/2
-                leftPointY = (results.pose_landmarks.landmark[17].y + results.pose_landmarks.landmark[19].y)/2
-                leftPointZ = (results.pose_landmarks.landmark[17].z + results.pose_landmarks.landmark[19].z)/2
-                hmdX = results.pose_landmarks.landmark[0].x - leftPointX
-                hmdY = results.pose_landmarks.landmark[0].y - leftPointY
-                hmdZ = results.pose_landmarks.landmark[0].z - leftPointZ
-                leftAnkleX = results.pose_landmarks.landmark[27].x - leftPointX
-                leftAnkleY = results.pose_landmarks.landmark[27].y - leftPointY
-                leftAnkleZ = results.pose_landmarks.landmark[27].z - leftPointZ
-                rightAnkleX = results.pose_landmarks.landmark[28].x - leftPointX
-                rightAnkleY = results.pose_landmarks.landmark[28].y - leftPointY
-                rightAnkleZ = results.pose_landmarks.landmark[28].z - leftPointZ
+                #leftPointX = (results.pose_landmarks.landmark[17].x + results.pose_landmarks.landmark[19].x)/2
+                #leftPointY = (results.pose_landmarks.landmark[17].y + results.pose_landmarks.landmark[19].y)/2
+                #leftPointZ = (results.pose_landmarks.landmark[17].z + results.pose_landmarks.landmark[19].z)/2
+                #hmdX = results.pose_landmarks.landmark[0].x - leftPointX
+                #hmdY = results.pose_landmarks.landmark[0].y - leftPointY
+                #hmdZ = results.pose_landmarks.landmark[0].z - leftPointZ
+                #leftAnkleX = results.pose_landmarks.landmark[27].x - leftPointX
+                #leftAnkleY = results.pose_landmarks.landmark[27].y - leftPointY
+                #leftAnkleZ = results.pose_landmarks.landmark[27].z - leftPointZ
+                #rightAnkleX = results.pose_landmarks.landmark[28].x - leftPointX
+                #rightAnkleY = results.pose_landmarks.landmark[28].y - leftPointY
+                #rightAnkleZ = results.pose_landmarks.landmark[28].z - leftPointZ
+                hmdX = results.pose_landmarks.landmark[0].x
+                hmdY = results.pose_landmarks.landmark[0].y
+                hmdZ = results.pose_landmarks.landmark[0].z
+                leftAnkleX = results.pose_landmarks.landmark[27].x - hmdX
+                leftAnkleY = results.pose_landmarks.landmark[27].y - hmdY
+                leftAnkleZ = results.pose_landmarks.landmark[27].z - hmdZ
+                rightAnkleX = results.pose_landmarks.landmark[28].x - hmdX
+                rightAnkleY = results.pose_landmarks.landmark[28].y - hmdY
+                rightAnkleZ = results.pose_landmarks.landmark[28].z - hmdZ
                 #pointsString += str((results.pose_landmarks.landmark[17].x + results.pose_landmarks.landmark[19].x)/2) + "," + str((results.pose_landmarks.landmark[17].y + results.pose_landmarks.landmark[19].y)/2) + "," + str((results.pose_landmarks.landmark[17].z + results.pose_landmarks.landmark[19].z)/2) + "," + str((results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str((results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str((results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2) + "," + str(results.pose_landmarks.landmark[0].x) + "," + str(results.pose_landmarks.landmark[0].y) + "," + str(results.pose_landmarks.landmark[0].z)
+                #pointsString += str(leftAnkleX) + "," + str(leftAnkleY) + "," + str(leftAnkleZ) + "," + str(rightAnkleX) + "," + str(rightAnkleY) + "," + str(rightAnkleZ) + "," + str(hmdX) + "," + str(hmdY) + "," + str(hmdZ)
                 pointsString += str(leftAnkleX) + "," + str(leftAnkleY) + "," + str(leftAnkleZ) + "," + str(rightAnkleX) + "," + str(rightAnkleY) + "," + str(rightAnkleZ) + "," + str(hmdX) + "," + str(hmdY) + "," + str(hmdZ)
                 
 

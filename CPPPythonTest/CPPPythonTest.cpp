@@ -108,6 +108,7 @@ void main()
 		{
 			//these must be done in this order
 			case '+':
+				memmove(buf, buf + 1, strlen(buf) + 1);
 				//calibrate
 				if (firstCalibration) {
 					//store the necessary points so these and the next buff can be fed into the tracker

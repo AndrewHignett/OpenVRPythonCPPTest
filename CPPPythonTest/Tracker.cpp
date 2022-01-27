@@ -1236,7 +1236,8 @@ bool Tracker::IsInRange(double newPoint[3])
 void Tracker::testFunction(double ax, double ay, double az, double bx, double by, double bz, double cx, double cy, double cz)
 {
 	double outpose[7];
-	memcpy(outpose, connection->GetControllerPose(1), 7 * sizeof(double));
+	//memcpy(outpose, connection->GetControllerPose(1), 7 * sizeof(double));
+	memcpy(outpose, connection->GetHMDPose(), 7 * sizeof(double));
 	//tellin the difference between left and right can be difficult, doesn't quite work when user direction changes
 	//could use direction the user is facing to make this work
 
@@ -1299,6 +1300,8 @@ void Tracker::MapPoint(double point[3], double out[3])
 	calibration[0][2] = point[1];
 	calibration[0][3] = point[2];
 
+	printf("Point: %f %f %f\n", point[0], point[1], point[2]);
+
 	//-1*(det calibration/ det calibrationDenom)
 	double aPoint[4][4] = { {calibration[0][1], calibration[2][1], calibration[3][1], calibration[4][1]},
 							{calibration[0][2], calibration[2][2], calibration[3][2], calibration[4][2]},
@@ -1320,6 +1323,9 @@ void Tracker::MapPoint(double point[3], double out[3])
 	double detB = det(bPoint);
 	double detC = det(cPoint);
 	double detD = det(dPoint);
+
+	printf("DetABCD %f %f %f %f\n", detA, detB, detC, detD);
+
 	double a[3] = { point1.at(0)*detA / calibrationDenomDet, point1.at(1)*detA / calibrationDenomDet, point1.at(2)*detA / calibrationDenomDet };
 	double b[3] = { point2.at(0)*detB / calibrationDenomDet, point2.at(1)*detB / calibrationDenomDet, point2.at(2)*detB / calibrationDenomDet };
 	double c[3] = { point3.at(0)*detC / calibrationDenomDet, point3.at(1)*detC / calibrationDenomDet, point3.at(2)*detC / calibrationDenomDet };
@@ -1328,9 +1334,17 @@ void Tracker::MapPoint(double point[3], double out[3])
 	//out[0] = (-1 * (a[0] + b[0] + c[0] + d[0]));
 	//out[1] = (-1 * (a[1] + b[1] + c[1] + d[1]));
 	//out[2] = (-1 * (a[2] + b[2] + c[2] + d[2]));
-	out[0] = (a[0] + b[0] + c[0] + d[0]);
-	out[1] = (a[1] + b[1] + c[1] + d[1]);
-	out[2] = (a[2] + b[2] + c[2] + d[2]);
+	//out[0] = (a[0] + b[0] + c[0] + d[0]);
+	//out[1] = (a[1] + b[1] + c[1] + d[1]);
+	//out[2] = (a[2] + b[2] + c[2] + d[2]);
+	//out[0] = (-1*a[0] + b[0] + c[0] + d[0]);
+	//out[1] = (-1*a[1] + b[1] + c[1] + d[1]);
+	//out[2] = (-1*a[2] + b[2] + c[2] + d[2]);
+	out[0] = -1*(a[0] - b[0] - c[0] - d[0]);
+	out[1] = -1*(a[1] - b[1] - c[1] - d[1]);
+	out[2] = -1*(a[2] - b[2] - c[2] - d[2]);
+	printf("CalibrationDenomDet: %f\n", calibrationDenomDet);
+	printf("New MapPoint: %f %f %f\n", out[0], out[1], out[2]);
 }
 
 void Tracker::calibrate(std::string inputString)
@@ -1355,12 +1369,18 @@ void Tracker::calibrate(std::string inputString)
 		result.push_back(substr);
 	}
 
-	//3 is head, 4 is right controller
-	point3 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
-	point4 = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
+	//3 is left controller, 4 is right controller
+	//point3 = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	//point4 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	double point3t[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	double point4t[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
 	//target points are in vr space
-	double point3t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
-	double point4t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
+	//double point3t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
+	//double point4t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
+	//double point3t[3] = { leftHandPose[0] - headPose[0], leftHandPose[1] - headPose[1], leftHandPose[2] - headPose[2] };
+	//double point4t[3] = { rightHandPose[0] - headPose[0], rightHandPose[1] - headPose[1], rightHandPose[2] - headPose[2] };
+	point3 = { leftHandPose[0] - headPose[0], leftHandPose[1] - headPose[1], leftHandPose[2] - headPose[2] };
+	point4 = { rightHandPose[0] - headPose[0], rightHandPose[1] - headPose[1], rightHandPose[2] - headPose[2] };
 
 	//double leftHand[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
 	//double rightHand[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
@@ -1455,8 +1475,10 @@ void Tracker::calibrate(std::string inputString)
 		printf("\n");
 	}
 	
-	
-
+	double newPointTest[3];
+	double pointTest[3] = { calibration[1][1], calibration[1][2], calibration[1][3] };
+	MapPoint(pointTest, newPointTest);
+	printf("Expected output: %f %f %f\n", point1[0], point1[1], point1[2]);
 	//Quaternion<double> 
 	//We need a coordinate system:
 	//find Y vector by using the average of vectors between ankles and between knees
@@ -1501,13 +1523,19 @@ void Tracker::initialCalibration(std::string inputString)
 		getline(s_stream, substr, ','); //get first string delimited by comma
 		result.push_back(substr);
 	}
-	//1 is head, 2 is right controller
-	point1 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
-	point2 = { stod(result.at(6)), stod(result.at(7)), stod(result.at(8)) };
+	//1 is left controller, 2 is right controller
+	//point1 = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	//point2 = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
+	double point1t[3] = { stod(result.at(0)), stod(result.at(1)), stod(result.at(2)) };
+	double point2t[3] = { stod(result.at(3)), stod(result.at(4)), stod(result.at(5)) };
 	//store point1 and point 2 (hmd/right controller) from python side, then point1t/point2t	
 	//target points are in vr space
-	double point1t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
-	double point2t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
+	//double point1t[3] = { headPose[0] - leftHandPose[0], headPose[1] - leftHandPose[1], headPose[2] - leftHandPose[2] };
+	//double point2t[3] = { rightHandPose[0] - leftHandPose[0], rightHandPose[1] - leftHandPose[1], rightHandPose[2] - leftHandPose[2] };
+	//double point1t[3] = { leftHandPose[0] - headPose[0], leftHandPose[1] - headPose[1], leftHandPose[2] - headPose[2] };
+	//double point2t[3] = { rightHandPose[0] - headPose[0], rightHandPose[1] - headPose[1], rightHandPose[2] - headPose[2] };
+	point1 = { leftHandPose[0] - headPose[0], leftHandPose[1] - headPose[1], leftHandPose[2] - headPose[2] };
+	point2 = { rightHandPose[0] - headPose[0], rightHandPose[1] - headPose[1], rightHandPose[2] - headPose[2] };
 
 	calibration[0][0] = 0;
 	calibration[0][1] = 0;
