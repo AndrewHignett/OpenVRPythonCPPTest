@@ -1266,7 +1266,6 @@ void Tracker::testFunction(double ax, double ay, double az, double bx, double by
 	newPointB[0] += outpose[0];
 	newPointB[1] += outpose[1];
 	newPointB[2] += outpose[2];
-	
 	//printf("IsInRange: %d\n\n", IsInRange(newPointB));
 	if (IsInRange(newPointB))
 	{
@@ -1290,7 +1289,7 @@ double det(double A[4][4])
 		}
 	}
 	for (int i = 0; i < 4; i++)
-		r *= A[i][i];
+		r *= A[i][i];		
 	return r;
 }
 
@@ -1303,28 +1302,33 @@ void Tracker::MapPoint(double point[3], double out[3])
 	printf("Point: %f %f %f\n", point[0], point[1], point[2]);
 
 	//-1*(det calibration/ det calibrationDenom)
-	double aPoint[4][4] = { {calibration[0][1], calibration[2][1], calibration[3][1], calibration[4][1]},
-							{calibration[0][2], calibration[2][2], calibration[3][2], calibration[4][2]},
-							{calibration[0][3], calibration[2][3], calibration[3][3], calibration[4][3]},
-							{calibration[0][4], calibration[2][4], calibration[3][4], calibration[4][4]} };
-	double bPoint[4][4] = { {calibration[0][1], calibration[1][1], calibration[3][1], calibration[4][1]},
-							{calibration[0][2], calibration[1][2], calibration[3][2], calibration[4][2]},
-							{calibration[0][3], calibration[1][3], calibration[3][3], calibration[4][3]},
-							{calibration[0][4], calibration[1][4], calibration[3][4], calibration[4][4]} };
-	double cPoint[4][4] = { {calibration[0][1], calibration[1][1], calibration[2][1], calibration[4][1]},
-							{calibration[0][2], calibration[1][2], calibration[2][2], calibration[4][2]},
-							{calibration[0][3], calibration[1][3], calibration[2][3], calibration[4][3]},
-							{calibration[0][4], calibration[1][4], calibration[2][4], calibration[4][4]} };
-	double dPoint[4][4] = { {calibration[0][1], calibration[1][1], calibration[2][1], calibration[3][1]},
-							{calibration[0][2], calibration[1][2], calibration[2][2], calibration[3][2]},
-							{calibration[0][3], calibration[1][3], calibration[2][3], calibration[3][3]},
-							{calibration[0][4], calibration[1][4], calibration[2][4], calibration[3][4]} };
+
+
+
+	double aPoint[4][4] = { {calibration[0][1], calibration[0][2], calibration[0][3], calibration[0][4]},
+							{calibration[2][1], calibration[2][2], calibration[2][3], calibration[2][4]},
+							{calibration[3][1], calibration[3][2], calibration[3][3], calibration[3][4]},
+							{calibration[4][1], calibration[4][2], calibration[4][3], calibration[4][4]} };
+	double bPoint[4][4] = { {calibration[0][1], calibration[0][2], calibration[0][3], calibration[0][4]},
+							{calibration[1][1], calibration[1][2], calibration[1][3], calibration[1][4]},
+							{calibration[3][1], calibration[3][2], calibration[3][3], calibration[3][4]},
+							{calibration[4][1], calibration[4][2], calibration[4][3], calibration[4][4]} };
+	double cPoint[4][4] = { {calibration[0][1], calibration[0][2], calibration[0][3], calibration[0][4]},
+							{calibration[1][1], calibration[1][2], calibration[1][3], calibration[1][4]},
+							{calibration[2][1], calibration[2][2], calibration[2][3], calibration[2][4]},
+							{calibration[4][1], calibration[4][2], calibration[4][3], calibration[4][4]} };
+	double dPoint[4][4] = { {calibration[0][1], calibration[0][2], calibration[0][3], calibration[0][4]},
+							{calibration[1][1], calibration[1][2], calibration[1][3], calibration[1][4]},
+							{calibration[2][1], calibration[2][2], calibration[2][3], calibration[2][4]},
+							{calibration[3][1], calibration[3][2], calibration[3][3], calibration[3][4]} };
+
+	
+	
 	double detA = det(aPoint);
 	double detB = det(bPoint);
 	double detC = det(cPoint);
 	double detD = det(dPoint);
 
-	printf("DetABCD %f %f %f %f\n", detA, detB, detC, detD);
 
 	double a[3] = { point1.at(0)*detA / calibrationDenomDet, point1.at(1)*detA / calibrationDenomDet, point1.at(2)*detA / calibrationDenomDet };
 	double b[3] = { point2.at(0)*detB / calibrationDenomDet, point2.at(1)*detB / calibrationDenomDet, point2.at(2)*detB / calibrationDenomDet };
@@ -1343,7 +1347,9 @@ void Tracker::MapPoint(double point[3], double out[3])
 	out[0] = -1*(a[0] - b[0] - c[0] - d[0]);
 	out[1] = -1*(a[1] - b[1] - c[1] - d[1]);
 	out[2] = -1*(a[2] - b[2] - c[2] - d[2]);
-	printf("CalibrationDenomDet: %f\n", calibrationDenomDet);
+	//out[0] = (a[0] - b[0] - c[0] - d[0]);
+	//out[1] = (a[1] - b[1] - c[1] - d[1]);
+	//out[2] = (a[2] - b[2] - c[2] - d[2]);
 	printf("New MapPoint: %f %f %f\n", out[0], out[1], out[2]);
 }
 

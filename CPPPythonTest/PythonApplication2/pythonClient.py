@@ -331,6 +331,8 @@ PLAN
 -!feed the above into tracker locations
 -!add headset location to these coordinates - might be easier/better to use controller location (doesn't need quaternions, just x-y-z position)
 
+-Try minusing instead of adding on the head position after mapping the point
+
 EXTENDED FEATURES
 -Tracker orientation
 -calibrator file loading
