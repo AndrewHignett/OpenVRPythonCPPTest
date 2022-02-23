@@ -267,8 +267,20 @@ def tracking():
                 rightAnkleZ = results.pose_landmarks.landmark[28].z - hmdZ
                 #pointsString += str((results.pose_landmarks.landmark[17].x + results.pose_landmarks.landmark[19].x)/2) + "," + str((results.pose_landmarks.landmark[17].y + results.pose_landmarks.landmark[19].y)/2) + "," + str((results.pose_landmarks.landmark[17].z + results.pose_landmarks.landmark[19].z)/2) + "," + str((results.pose_landmarks.landmark[18].x + results.pose_landmarks.landmark[20].x)/2) + "," + str((results.pose_landmarks.landmark[18].y + results.pose_landmarks.landmark[20].y)/2) + "," + str((results.pose_landmarks.landmark[18].z + results.pose_landmarks.landmark[20].z)/2) + "," + str(results.pose_landmarks.landmark[0].x) + "," + str(results.pose_landmarks.landmark[0].y) + "," + str(results.pose_landmarks.landmark[0].z)
                 #pointsString += str(leftAnkleX) + "," + str(leftAnkleY) + "," + str(leftAnkleZ) + "," + str(rightAnkleX) + "," + str(rightAnkleY) + "," + str(rightAnkleZ) + "," + str(hmdX) + "," + str(hmdY) + "," + str(hmdZ)
-                pointsString += str(leftAnkleX) + "," + str(leftAnkleY) + "," + str(leftAnkleZ) + "," + str(rightAnkleX) + "," + str(rightAnkleY) + "," + str(rightAnkleZ) + "," + str(hmdX) + "," + str(hmdY) + "," + str(hmdZ)
                 
+                #live:
+                #pointsString += str(leftAnkleX) + "," + str(leftAnkleY) + "," + str(leftAnkleZ) + "," + str(rightAnkleX) + "," + str(rightAnkleY) + "," + str(rightAnkleZ) + "," + str(hmdX) + "," + str(hmdY) + "," + str(hmdZ)
+                #testing by intentionally mapping
+                #'''
+                leftAnkleX = results.pose_landmarks.landmark[17].x/2 + results.pose_landmarks.landmark[19].x/2 - hmdX
+                leftAnkleY = results.pose_landmarks.landmark[17].y/2 + results.pose_landmarks.landmark[19].y/2 - hmdY
+                leftAnkleZ = results.pose_landmarks.landmark[17].z/2 + results.pose_landmarks.landmark[19].z/2 - hmdZ
+                rightAnkleX = results.pose_landmarks.landmark[18].z/2 + results.pose_landmarks.landmark[20].z/2 - hmdX
+                rightAnkleY = results.pose_landmarks.landmark[18].z/2 + results.pose_landmarks.landmark[20].z/2 - hmdY
+                rightAnkleZ = results.pose_landmarks.landmark[18].z/2 + results.pose_landmarks.landmark[20].z/2 - hmdZ
+                pointsString += str(leftAnkleX) + "," + str(leftAnkleY) + "," + str(leftAnkleZ) + "," + str(rightAnkleX) + "," + str(rightAnkleY) + "," + str(rightAnkleZ) + "," + str(hmdX) + "," + str(hmdY) + "," + str(hmdZ)
+                #'''
+
 
                 image[0:480,0:640] = (0,0,0);
                 mp_drawing.draw_landmarks(
